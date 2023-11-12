@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_height="wrap_content">
+    <TextView
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:text="@string/device_name_example"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginStart="20dp"
+        android:textSize="20sp"
+        android:id="@+id/bluetooth_device_name"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/bluetooth_device_name"
+        app:layout_constraintEnd_toStartOf="@id/bluetooth_device_select_button"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/mac_example"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/bluetooth_device_mac"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:text="@string/connect"
+        android:layout_marginEnd="20dp"
+        android:id="@+id/bluetooth_device_select_button"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">SimpleEdifier</string>
+    <string name="scan_start_button">Scan Start Button</string>
+    <string name="connect">connect</string>
+    <string name="mac_example" translatable="false">00-16-EA-AE-3C-40</string>
+    <string name="device_name_example">device name</string>
+    <string name="mac_address">MAC Address</string>
+    <string name="device_name">Device Name</string>
+</resources>

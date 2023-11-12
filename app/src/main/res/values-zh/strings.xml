@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SimpleEdifier</string>
+    <string name="scan_start_button">开始扫描</string>
+    <string name="connect">连接</string>
+    <string name="device_name_example">设备名称</string>
+    <string name="mac_address">MAC 地址</string>
+    <string name="device_name">设备名称</string>
+</resources>
