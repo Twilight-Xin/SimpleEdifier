@@ -16,5 +16,12 @@
     <string name="cmd_disconnect" translatable="false">"CD"</string>
     <string name="cmd_re_pair" translatable="false">"CF"</string>
     <string name="cmd_factory_reset" translatable="false">"07"</string>
-    
+    <string name="cmd_read_noise" translatable="false">"CC"</string>
+    <string name="cmd_read_eq" translatable="false">"D5"</string>
+    <string name="cmd_read_game_mode" translatable="false">"08"</string>
+    <string name="cmd_read_ldac" translatable="false">"48"</string>
+    <string name="cmd_read_prompt_volume" translatable="false">"05"</string>
+    <string name="cmd_read_battery" translatable="false">"D0"</string>
+    <string name="cmd_read_mac" translatable="false">"C8"</string>
+    <string name="cmd_firmware" translatable="false">"C6"</string>
 </resources>

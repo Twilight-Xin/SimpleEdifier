@@ -6,16 +6,12 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.BluetoothGattServer
 import android.bluetooth.BluetoothGattService
 import android.bluetooth.BluetoothProfile
 import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
 import android.os.Build
 import android.util.Log
-import android.widget.Toast
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import java.util.UUID
 
 
@@ -38,11 +34,12 @@ class ConnectBleDevice(context: Context, device:BluetoothDevice, viewModel: Edif
                 when (newState) {
                     BluetoothProfile.STATE_CONNECTED -> {
                         gatt?.discoverServices()
-                        viewModel.setConnected(true)
+                        Log.d(TAG, "onConnectionStateChange: 连接")
                     }
 
                     BluetoothProfile.STATE_DISCONNECTED -> {
                         viewModel.setConnected(false)
+                        Log.d(TAG, "onConnectionStateChange: 断开")
                     }
                 }
             }.start()
@@ -55,7 +52,7 @@ class ConnectBleDevice(context: Context, device:BluetoothDevice, viewModel: Edif
         ) {
             Thread {
                 if (CRCCheck(value)) {
-                    val data = value.sliceArray(0..value.size - 2)
+                    val data = value.sliceArray(0 until  value.size - 2)
                     viewModel.setData(data)
                 }
                 Log.d(TAG, "onCharacteristicChanged: 接受数据")
@@ -68,6 +65,7 @@ class ConnectBleDevice(context: Context, device:BluetoothDevice, viewModel: Edif
             status: Int
         ) {
             Log.d(TAG, "onDescriptorWrite: 监听成功")
+            viewModel.setConnected(true)
         }
 
         @SuppressLint("MissingPermission")

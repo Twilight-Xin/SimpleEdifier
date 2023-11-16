@@ -8,11 +8,11 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -25,9 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.asFlow
 import com.twilight.simpleedifier.ui.theme.SimpleEdifierTheme
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.toCollection
 
 class ConnectedActivity : AppCompatActivity() {
     companion object{
@@ -69,6 +66,7 @@ class ConnectedActivity : AppCompatActivity() {
             if(it){
                 Toast.makeText(this, getString(R.string.connect_success), Toast.LENGTH_LONG).show()
                 connected = true
+                readSettings()
             }else{
                 if(connected) {
                     Toast.makeText(this, getString(R.string.disconnect), Toast.LENGTH_LONG).show()
@@ -101,7 +99,20 @@ class ConnectedActivity : AppCompatActivity() {
     }
 
     private fun readSettings(){
-
+        Thread{
+            connectDevice.write(getString(R.string.cmd_read_battery))
+            Thread.sleep(150)
+            connectDevice.write(getString(R.string.cmd_read_noise))
+            Thread.sleep(150)
+            connectDevice.write(getString(R.string.cmd_read_game_mode))
+            Thread.sleep(150)
+            connectDevice.write(getString(R.string.cmd_read_mac))
+            Thread.sleep(150)
+            connectDevice.write(getString(R.string.cmd_read_ldac))
+            Thread.sleep(150)
+            connectDevice.write(getString(R.string.cmd_read_eq))
+            //
+        }.start()
     }
 
     // call back
@@ -141,6 +152,10 @@ class ConnectedActivity : AppCompatActivity() {
         }
     }
 
+    private fun powerOffCallback(){
+        connectDevice.write(getString(R.string.cmd_power_off))
+    }
+
     // UI
 
     interface TripleButtonCallback{
@@ -157,13 +172,13 @@ class ConnectedActivity : AppCompatActivity() {
 
         Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth(1f), verticalAlignment = Alignment.CenterVertically){
             RadioButton(status[0], onClick = tripleButtonCallback::first)
-            Text(text = labelList[0], color = MaterialTheme.colorScheme.secondary)
+            Text(text = labelList[0], color = MaterialTheme.colorScheme.primary)
 
             RadioButton(status[1], onClick = tripleButtonCallback::second)
-            Text(text = labelList[1], color = MaterialTheme.colorScheme.secondary)
+            Text(text = labelList[1], color = MaterialTheme.colorScheme.primary)
 
             RadioButton(status[2], onClick = tripleButtonCallback::third)
-            Text(text = labelList[2], color = MaterialTheme.colorScheme.secondary)
+            Text(text = labelList[2], color = MaterialTheme.colorScheme.primary)
         }
     }
 
@@ -195,15 +210,36 @@ class ConnectedActivity : AppCompatActivity() {
             val game_mode = remember {
                 getString(R.string.game_mode)
             }
-            Text(text = game_mode, color = MaterialTheme.colorScheme.secondary)
+            Text(text = game_mode, color = MaterialTheme.colorScheme.primary)
         }
 
+    }
+    
+    @Composable
+    fun BatteryUi(viewModel: EdifierViewModel){
+        val percent = viewModel.getBattery().asFlow().collectAsState(initial = 0)
+        val text = remember {
+            getString(R.string.current_battery)
+        }
+        val show_text = text + String.format("%d %%", percent.value)
+        Text(text = show_text, color = MaterialTheme.colorScheme.primary)
+    }
+
+    @Composable
+    fun PowerOffUi(){
+        Button(onClick = ::powerOffCallback) {
+            val text = remember {
+                getString(R.string.power_off)
+            }
+            Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
+        }
     }
 
     @Preview
     @Composable
-    fun PreviewTripleButton(){
-        Column {
+    fun Preview(){
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("23%")
             TripleButton(
                 labelList = arrayListOf("noise mode", "standard mode", "surround mode"),
                 arrayListOf(true, false, false),
@@ -211,18 +247,22 @@ class ConnectedActivity : AppCompatActivity() {
             )
             Row(verticalAlignment = Alignment.CenterVertically){
                 Switch(checked = false, onCheckedChange = {})
-                Text(text = "game mode", color = MaterialTheme.colorScheme.secondary)
+                Text(text = "game mode", color = MaterialTheme.colorScheme.primary)
             }
-
+            Button(onClick = ::powerOffCallback) {
+                Text(text = "text", color = MaterialTheme.colorScheme.onPrimary)
+            }
         }
 
     }
 
     @Composable
     fun ConnectedActivityUI(viewModel: EdifierViewModel){
-        Column {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            BatteryUi(viewModel = viewModel)
             NoiseModeUi(viewModel = viewModel)
             GameModeUi(viewModel = viewModel)
+            PowerOffUi()
         }
 
     }

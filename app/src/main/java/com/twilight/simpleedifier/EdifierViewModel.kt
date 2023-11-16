@@ -37,14 +37,15 @@ class EdifierViewModel: ViewModel() {
     private val ldac_mode:MutableLiveData<String> = MutableLiveData(null)
     private val eq_mode:MutableLiveData<String> = MutableLiveData(null)
     private val as_volume:MutableLiveData<Int> = MutableLiveData(0)
+    private val prompt_volume:MutableLiveData<Int> = MutableLiveData(-1)
 
     private val selectable_noise_modes:MutableLiveData<ArrayList<Boolean>> = MutableLiveData(
         ArrayList()
     )
 
-    private val shutdown_time:MutableLiveData<UInt> = MutableLiveData(0u)
+    private val shutdown_time:MutableLiveData<Int> = MutableLiveData(-1)
 
-    private val battery:MutableLiveData<UInt> = MutableLiveData(0u)
+    private val battery:MutableLiveData<Int> = MutableLiveData(-1)
     private val mac:MutableLiveData<String> = MutableLiveData(null)
     private val firmware:MutableLiveData<String> = MutableLiveData(null)
 
@@ -92,7 +93,7 @@ class EdifierViewModel: ViewModel() {
         this.connected.postValue(connected)
     }
 
-    fun getBattery():LiveData<UInt>{
+    fun getBattery():LiveData<Int>{
         return battery
     }
 
@@ -108,7 +109,7 @@ class EdifierViewModel: ViewModel() {
         return selectable_noise_modes
     }
 
-    fun getShutDownTime():LiveData<UInt>{
+    fun getShutDownTime():LiveData<Int>{
         return shutdown_time
     }
 
@@ -142,9 +143,9 @@ class EdifierViewModel: ViewModel() {
                         // game mode
                         game_mode.postValue(ch == 0x01u)
                     }
-                    160u -> {
+                    208u -> {
                         // battery
-                        battery.postValue(ch)
+                        battery.postValue(ch.toInt())
                     }
                     72u -> {
                         // LDAC
@@ -161,7 +162,8 @@ class EdifierViewModel: ViewModel() {
                         }
                     }
                     5u -> {
-                        // PV ?
+                        // PV
+                        prompt_volume.postValue(ch.toInt())
                     }
                     179u -> {
                         // auto power off
@@ -173,7 +175,7 @@ class EdifierViewModel: ViewModel() {
                 when {
                     cmd == 200u && len == 7u -> {
                         // （mac）
-                        val address = byteArray.sliceArray(3..byteArray.size)
+                        val address = byteArray.sliceArray(3 until byteArray.size)
                         val stringArray = ArrayList<String>()
                         for (b in address){
                             stringArray.add(String.format("%02X", b))
@@ -183,7 +185,7 @@ class EdifierViewModel: ViewModel() {
                     }
                     cmd == 198u && len == 4u -> {
                         // 固件
-                        firmware.postValue(byteArray.sliceArray(3..byteArray.size).joinToString(separator = "."))
+                        firmware.postValue(byteArray.sliceArray(3 until byteArray.size).joinToString(separator = "."))
                     }
                     cmd == 204u && len == 3u -> {
                         // asv
@@ -214,7 +216,7 @@ class EdifierViewModel: ViewModel() {
                     }
                     cmd == 179u && len == 3u -> {
                         // shut down
-                        shutdown_time.postValue(byteArray[4].toUInt() and 0xFFu)
+                        shutdown_time.postValue(byteArray[4].toInt())
                     }
                 }
             }

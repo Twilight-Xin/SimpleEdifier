@@ -12,4 +12,6 @@
     <string name="disconnect">disconnect</string>
     <string name="connect_success">connect success</string>
     <string name="game_mode">Game Mode</string>
+    <string name="current_battery">Current Battery</string>
+    <string name="power_off">Power Off</string>
 </resources>
