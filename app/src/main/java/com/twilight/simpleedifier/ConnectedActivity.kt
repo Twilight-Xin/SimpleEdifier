@@ -10,9 +10,12 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.withInfiniteAnimationFrameNanos
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -56,7 +59,7 @@ class ConnectedActivity : AppCompatActivity() {
         // UI
         setContent {
             SimpleEdifierTheme {
-                ConnectedActivityUI()
+                ConnectedActivityUI(viewModel)
             }
         }
     }
@@ -97,6 +100,10 @@ class ConnectedActivity : AppCompatActivity() {
         finish()
     }
 
+    private fun readSettings(){
+
+    }
+
     // call back
 
     private val noiseModeCallback: TripleButtonCallback = object:TripleButtonCallback{
@@ -123,6 +130,17 @@ class ConnectedActivity : AppCompatActivity() {
 
     }
 
+    private fun gameModeCallback(current: Boolean) {
+        val cmd = if(current){
+            getString(R.string.cmd_game_on)
+        }else{
+            getString(R.string.cmd_game_off)
+        }
+        if(connectDevice.write(cmd)){
+            viewModel.setGameMode(current)
+        }
+    }
+
     // UI
 
     interface TripleButtonCallback{
@@ -139,13 +157,13 @@ class ConnectedActivity : AppCompatActivity() {
 
         Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth(1f), verticalAlignment = Alignment.CenterVertically){
             RadioButton(status[0], onClick = tripleButtonCallback::first)
-            Text(text = labelList[0])
+            Text(text = labelList[0], color = MaterialTheme.colorScheme.secondary)
 
             RadioButton(status[1], onClick = tripleButtonCallback::second)
-            Text(text = labelList[1])
+            Text(text = labelList[1], color = MaterialTheme.colorScheme.secondary)
 
             RadioButton(status[2], onClick = tripleButtonCallback::third)
-            Text(text = labelList[2])
+            Text(text = labelList[2], color = MaterialTheme.colorScheme.secondary)
         }
     }
 
@@ -169,18 +187,43 @@ class ConnectedActivity : AppCompatActivity() {
         TripleButton(labelList = label, booleanArray, tripleButtonCallback = noiseModeCallback)
     }
 
+    @Composable
+    fun GameModeUi(viewModel: EdifierViewModel){
+        val gameMode = viewModel.getGameMode().asFlow().collectAsState(initial = false)
+        Row(verticalAlignment = Alignment.CenterVertically){
+            Switch(checked = gameMode.value, onCheckedChange = ::gameModeCallback)
+            val game_mode = remember {
+                getString(R.string.game_mode)
+            }
+            Text(text = game_mode, color = MaterialTheme.colorScheme.secondary)
+        }
+
+    }
+
     @Preview
     @Composable
     fun PreviewTripleButton(){
-        TripleButton(
-            labelList = arrayListOf("noise mode", "standard mode", "surround mode"),
-            arrayListOf(true, false, false),
-            tripleButtonCallback = noiseModeCallback
-        )
+        Column {
+            TripleButton(
+                labelList = arrayListOf("noise mode", "standard mode", "surround mode"),
+                arrayListOf(true, false, false),
+                tripleButtonCallback = noiseModeCallback
+            )
+            Row(verticalAlignment = Alignment.CenterVertically){
+                Switch(checked = false, onCheckedChange = {})
+                Text(text = "game mode", color = MaterialTheme.colorScheme.secondary)
+            }
+
+        }
+
     }
 
     @Composable
-    fun ConnectedActivityUI(){
-        NoiseModeUi(viewModel = viewModel)
+    fun ConnectedActivityUI(viewModel: EdifierViewModel){
+        Column {
+            NoiseModeUi(viewModel = viewModel)
+            GameModeUi(viewModel = viewModel)
+        }
+
     }
 }

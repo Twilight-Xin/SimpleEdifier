@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="cmd_noise_normal" translatable="false">"C101"</string>
+    <string name="cmd_noise_reduction" translatable="false">"C102"</string>
+    <string name="cmd_noise_ambient" translatable="false">"C103"</string>
+    <string name="cmd_eq_normal" translatable="false">"C400"</string>
+    <string name="cmd_eq_pop" translatable="false">"C401"</string>
+    <string name="cmd_eq_classical" translatable="false">"C402"</string>
+    <string name="cmd_eq_rock" translatable="false">"C403"</string>
+    <string name="cmd_game_on" translatable="false">"0901"</string>
+    <string name="cmd_game_off" translatable="false">"0900"</string>
+    <string name="cmd_ldac_off" translatable="false">"4900"</string>
+    <string name="cmd_ldac_48k" translatable="false">"4901"</string>
+    <string name="cmd_ldac_96k" translatable="false">"4902"</string>
+    <string name="cmd_power_off" translatable="false">"CE"</string>
+    <string name="cmd_disconnect" translatable="false">"CD"</string>
+    <string name="cmd_re_pair" translatable="false">"CF"</string>
+    <string name="cmd_factory_reset" translatable="false">"07"</string>
+    
+</resources>

@@ -33,7 +33,7 @@ class EdifierViewModel: ViewModel() {
     private val device_name:MutableLiveData<String> = MutableLiveData(null)
 
     private val noise_mode:MutableLiveData<String> = MutableLiveData(null)
-    private val game_mode:MutableLiveData<Boolean> = MutableLiveData(true)
+    private val game_mode:MutableLiveData<Boolean> = MutableLiveData(false)
     private val ldac_mode:MutableLiveData<String> = MutableLiveData(null)
     private val eq_mode:MutableLiveData<String> = MutableLiveData(null)
     private val as_volume:MutableLiveData<Int> = MutableLiveData(0)
@@ -70,6 +70,10 @@ class EdifierViewModel: ViewModel() {
 
     fun  getGameMode():LiveData<Boolean>{
         return game_mode
+    }
+
+    fun setGameMode(mode: Boolean){
+        game_mode.postValue(mode)
     }
 
     fun getLdacMode():LiveData<String>{

@@ -11,4 +11,5 @@
     <string name="surround_mode">Surround Mode</string>
     <string name="disconnect">disconnect</string>
     <string name="connect_success">connect success</string>
+    <string name="game_mode">Game Mode</string>
 </resources>
