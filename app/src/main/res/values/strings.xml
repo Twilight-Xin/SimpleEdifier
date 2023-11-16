@@ -6,4 +6,9 @@
     <string name="device_name_example">device name</string>
     <string name="mac_address">MAC Address</string>
     <string name="device_name">Device Name</string>
+    <string name="noise_mode">noise mode</string>
+    <string name="standard_mode">Standard Mode</string>
+    <string name="surround_mode">Surround Mode</string>
+    <string name="disconnect">disconnect</string>
+    <string name="connect_success">connect success</string>
 </resources>

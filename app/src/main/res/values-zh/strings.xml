@@ -5,4 +5,9 @@
     <string name="device_name_example">设备名称</string>
     <string name="mac_address">MAC 地址</string>
     <string name="device_name">设备名称</string>
+    <string name="standard_mode">标准模式</string>
+    <string name="noise_mode">降噪模式</string>
+    <string name="surround_mode">环境声模式</string>
+    <string name="disconnect">连接断开</string>
+    <string name="connect_success">连接成功</string>
 </resources>

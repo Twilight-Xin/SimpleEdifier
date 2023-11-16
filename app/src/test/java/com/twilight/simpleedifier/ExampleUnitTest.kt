@@ -14,4 +14,12 @@ class ExampleUnitTest {
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
     }
+
+    @Test
+    fun text_change_hex(){
+        val cmd = "C101"
+        val target = byteArrayOf(0xAA.toByte(), 0x02.toByte(), 0xC1.toByte(), 0x01.toByte(), 0x21.toByte(), 0x87.toByte())
+        val full = ConnectDevice.makeFullCmd(cmd)
+        assertArrayEquals(target, full)
+    }
 }

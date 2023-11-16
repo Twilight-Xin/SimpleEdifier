@@ -15,36 +15,17 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class ConnectActivity : AppCompatActivity() {
+class ScanActivity : AppCompatActivity() {
     companion object{
         const val TAG = "connect activity"
+        const val connect_fail = "connect fail"
     }
 
     // register for result
@@ -75,7 +56,7 @@ class ConnectActivity : AppCompatActivity() {
 
 
     //bluetooth
-    private var supportBLE:Boolean? = null
+    private var supportBLE:Boolean = false
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothLeScanner: BluetoothLeScanner? = null
     private var scanning = false
@@ -106,7 +87,7 @@ class ConnectActivity : AppCompatActivity() {
         mContext = this
 
         // view
-        setContentView(R.layout.activity_connect)
+        setContentView(R.layout.activity_scan)
         // button
         button = findViewById(R.id.scan_button)
         button.setOnClickListener{
@@ -138,6 +119,12 @@ class ConnectActivity : AppCompatActivity() {
         val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bluetoothAdapter = bluetoothManager.adapter
         bluetoothLeScanner = bluetoothAdapter?.bluetoothLeScanner
+
+        //connect back
+        val fail = intent.getBooleanExtra(connect_fail, false)
+        if(!fail){
+            autoConnect()
+        }
     }
 
     private fun startScan(){
@@ -207,9 +194,35 @@ class ConnectActivity : AppCompatActivity() {
         }
     }
 
-    private fun connect(device: BluetoothDevice){
-
+    private fun autoConnect(){
+        val sharedPreferences = getSharedPreferences(Settings.settings, MODE_PRIVATE)
+        val device_mac = sharedPreferences.getString(ConnectDevice.device_mac, null)
+        val auto_connect = sharedPreferences.getBoolean(Settings.auto_connect, true)
+        if(device_mac != null && auto_connect){
+            connect(device_mac, false)
+        }
     }
 
+    private fun connect(device: BluetoothDevice){
+        val sharedPreferences = getSharedPreferences(Settings.settings, MODE_PRIVATE)
+        val auto_connect = sharedPreferences.getBoolean(Settings.auto_connect, true)
+        connect(device.address, auto_connect)
+    }
+
+    private fun connect(deviceMac: String, remember:Boolean){
+        if(remember) {
+            val sharedPreferences = getSharedPreferences(Settings.settings, MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+
+            editor.putString(ConnectDevice.device_mac, deviceMac)
+            editor.apply()
+        }
+
+        val intent = Intent(this, ConnectedActivity::class.java)
+        intent.putExtra(ConnectDevice.device_mac, deviceMac)
+        intent.putExtra(ConnectDevice.isBLE, supportBLE)
+        startActivity(intent)
+        finish()
+    }
 
 }
