@@ -40,7 +40,10 @@ class EdifierViewModel: ViewModel() {
     private val prompt_volume:MutableLiveData<Int> = MutableLiveData(-1)
 
     private val selectable_noise_modes:MutableLiveData<ArrayList<Boolean>> = MutableLiveData(
-        ArrayList()
+        arrayListOf(true, true, true)
+    )
+    private val not_apply_selectable_noise_modes:MutableLiveData<ArrayList<Boolean>> = MutableLiveData(
+        arrayListOf(true, true, true)
     )
 
     private val shutdown_time:MutableLiveData<Int> = MutableLiveData(-1)
@@ -107,6 +110,14 @@ class EdifierViewModel: ViewModel() {
 
     fun getSelectableNoiseMode():LiveData<ArrayList<Boolean>>{
         return selectable_noise_modes
+    }
+
+    fun getNotApplySelectableNoiseMode():LiveData<ArrayList<Boolean>>{
+        return not_apply_selectable_noise_modes
+    }
+
+    fun setNotApplySelectableNoiseMode(list:ArrayList<Boolean>){
+        not_apply_selectable_noise_modes.postValue(list)
     }
 
     fun getShutDownTime():LiveData<Int>{
@@ -211,7 +222,11 @@ class EdifierViewModel: ViewModel() {
                     cmd == 240u && len == 3u && (byteArray[3].toUInt() and 0xFFu ) == 10u -> {
                         // 可选降噪
                         val mode = byteArray[4].toUInt() and 0xFFu
-                        val selectable_modes = arrayListOf((mode and 1u) == 1u, (mode and 2u) == 2u, (mode and 4u) == 4u)
+                        val selectable_modes = arrayListOf((mode and 2u) == 2u, (mode and 1u) == 1u, (mode and 4u) == 4u)
+                        selectable_noise_modes.postValue(selectable_modes)
+                        val copy = ArrayList<Boolean>()
+                        copy.addAll(selectable_modes)
+                        not_apply_selectable_noise_modes.postValue(copy)
 
                     }
                     cmd == 179u && len == 3u -> {

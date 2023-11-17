@@ -18,5 +18,6 @@
     <string name="pc_play">音乐播放</string>
     <string name="pc_pause">音乐暂停</string>
     <string name="pc_volume_up">音量加</string>
-    <string name="pc_volume_donw">音量减</string>
+    <string name="pc_volume_down">音量减</string>
+    <string name="set">设置</string>
 </resources>

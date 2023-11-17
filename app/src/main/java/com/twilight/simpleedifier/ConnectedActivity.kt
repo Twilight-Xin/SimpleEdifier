@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -107,6 +108,8 @@ class ConnectedActivity : AppCompatActivity() {
             Thread.sleep(150)
             connectDevice.write(getString(R.string.cmd_read_noise))
             Thread.sleep(150)
+            connectDevice.write(getString(R.string.cmd_read_as_settings))
+            Thread.sleep(150)
             connectDevice.write(getString(R.string.cmd_read_game_mode))
             Thread.sleep(150)
             connectDevice.write(getString(R.string.cmd_read_mac))
@@ -142,6 +145,53 @@ class ConnectedActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    private val selectable_noise_modes_callback = object {
+        fun changeStatus(index:Int, checked:Boolean){
+            val array = viewModel.getNotApplySelectableNoiseMode().value
+            if(array != null) {
+                val new_array = ArrayList<Boolean>()
+                new_array.addAll(array)
+                new_array[index] = checked
+                viewModel.setNotApplySelectableNoiseMode(new_array)
+            }
+        }
+
+        fun first(checked:Boolean){
+            changeStatus(0, checked)
+        }
+
+        fun second(checked:Boolean){
+            changeStatus(1, checked)
+        }
+
+        fun third(checked:Boolean){
+            changeStatus(2, checked)
+        }
+
+        fun set(){
+            val array = viewModel.getNotApplySelectableNoiseMode().value
+            val cmd = getString(R.string.cmd_control_settings)
+            var full_cmd = ""
+            if(array != null && array.size == 3){
+                if(array[0] && array[1] && array[2]){
+                    full_cmd = cmd + "07"
+                }
+                else if(array[1] && array[2]){
+                    full_cmd = cmd + "05"
+                }
+                else if(array[0] && array[2]){
+                    full_cmd = cmd + "06"
+                }
+                else if(array[0] && array[1]){
+                    full_cmd = cmd + "03"
+                }
+            }
+            if(full_cmd != ""){
+                connectDevice.write(full_cmd)
+            }
+        }
     }
 
     private fun gameModeCallback(current: Boolean) {
@@ -268,7 +318,7 @@ class ConnectedActivity : AppCompatActivity() {
     fun PcControlUi(){
         val list = remember {
             arrayListOf(getString(R.string.pc_prev), getString(R.string.pc_play), getString(R.string.pc_next),
-                getString(R.string.pc_volume_up), getString(R.string.pc_pause), getString(R.string.pc_volume_donw)
+                getString(R.string.pc_volume_up), getString(R.string.pc_pause), getString(R.string.pc_volume_down)
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally){
@@ -296,6 +346,39 @@ class ConnectedActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    @Composable
+    fun SelectableNoiseModeControlUi(viewModel: EdifierViewModel){
+        val status = viewModel.getNotApplySelectableNoiseMode().asFlow().collectAsState(initial = arrayListOf(true, true, true))
+        val label = remember {
+            arrayListOf(getString(R.string.noise_mode), getString(R.string.standard_mode), getString(R.string.surround_mode))
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = status.value[0],
+                    onCheckedChange = selectable_noise_modes_callback::first
+                )
+                Text(text = label[0])
+                Checkbox(
+                    checked = status.value[1],
+                    onCheckedChange = selectable_noise_modes_callback::second
+                )
+                Text(text = label[1])
+                Checkbox(
+                    checked = status.value[2],
+                    onCheckedChange = selectable_noise_modes_callback::third
+                )
+                Text(text = label[2])
+            }
+            Button(onClick = selectable_noise_modes_callback::set) {
+                val text = remember {
+                    getString(R.string.set)
+                }
+                Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
+            }
+        }
     }
 
     @Preview
@@ -339,6 +422,34 @@ class ConnectedActivity : AppCompatActivity() {
 
             Spacer(modifier = Modifier.height(50.dp))
 
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = true,
+                        onCheckedChange = selectable_noise_modes_callback::first
+                    )
+                    Text(text = "label[0]")
+                    Checkbox(
+                        checked = true,
+                        onCheckedChange = selectable_noise_modes_callback::second
+                    )
+                    Text(text = "label[1]")
+                    Checkbox(
+                        checked = true,
+                        onCheckedChange = selectable_noise_modes_callback::third
+                    )
+                    Text(text = "label[2]")
+                }
+                Button(onClick = selectable_noise_modes_callback::set) {
+                    val text = remember {
+                        getString(R.string.set)
+                    }
+                    Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(50.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically){
                 Switch(checked = false, onCheckedChange = {})
                 Text(text = "game mode", color = MaterialTheme.colorScheme.primary)
@@ -360,6 +471,8 @@ class ConnectedActivity : AppCompatActivity() {
             NoiseModeUi(viewModel = viewModel)
             Spacer(modifier = Modifier.height(50.dp))
             PcControlUi()
+            Spacer(modifier = Modifier.height(50.dp))
+            SelectableNoiseModeControlUi(viewModel = viewModel)
             Spacer(modifier = Modifier.height(50.dp))
             GameModeUi(viewModel = viewModel)
             PowerOffUi()

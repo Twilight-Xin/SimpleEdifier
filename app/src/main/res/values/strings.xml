@@ -11,7 +11,7 @@
     <string name="surround_mode">Surround Mode</string>
     <string name="disconnect">disconnect</string>
     <string name="connect_success">connect success</string>
-    <string name="game_mode" translatable="false">Game Mode</string>
+    <string name="game_mode">Game Mode</string>
     <string name="current_battery">Current Battery</string>
     <string name="power_off">Power Off</string>
     <string name="pc_next">Next Music</string>
@@ -19,5 +19,6 @@
     <string name="pc_play">Music Play</string>
     <string name="pc_pause">Music Pause</string>
     <string name="pc_volume_up">Volume Up</string>
-    <string name="pc_volume_donw">Volume Dwon</string>
+    <string name="pc_volume_down">Volume Down</string>
+    <string name="set">Set</string>
 </resources>

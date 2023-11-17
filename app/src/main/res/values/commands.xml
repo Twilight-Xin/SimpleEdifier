@@ -27,6 +27,7 @@
     <string name="cmd_read_mac" translatable="false">C8</string>
     <string name="cmd_firmware" translatable="false">C6</string>
     <string name="cmd_read_name" translatable="false">C9</string>
+    <string name="cmd_read_as_settings" translatable="false">F00A</string>
 
     <string name="cmd_pc_play" translatable="false">C200</string>
     <string name="cmd_pc_pause" translatable="false">C201</string>
