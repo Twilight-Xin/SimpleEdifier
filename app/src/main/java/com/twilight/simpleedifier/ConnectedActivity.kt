@@ -11,7 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -23,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import com.twilight.simpleedifier.ui.theme.SimpleEdifierTheme
 
@@ -152,6 +155,32 @@ class ConnectedActivity : AppCompatActivity() {
         }
     }
 
+    private val pc_control_callback = object {
+        fun musicPrev(){
+            connectDevice.write(getString(R.string.cmd_pc_prev))
+        }
+
+        fun musicNext(){
+            connectDevice.write(getString(R.string.cmd_pc_next))
+        }
+
+        fun musicPlay(){
+            connectDevice.write(getString(R.string.cmd_pc_play))
+        }
+
+        fun musicPause(){
+            connectDevice.write(getString(R.string.cmd_pc_pause))
+        }
+
+        fun volumeUp(){
+            connectDevice.write(getString(R.string.cmd_pc_volume_up))
+        }
+
+        fun volumeDown(){
+            connectDevice.write(getString(R.string.cmd_pc_volume_down))
+        }
+    }
+
     private fun powerOffCallback(){
         connectDevice.write(getString(R.string.cmd_power_off))
     }
@@ -235,23 +264,91 @@ class ConnectedActivity : AppCompatActivity() {
         }
     }
 
+    @Composable
+    fun PcControlUi(){
+        val list = remember {
+            arrayListOf(getString(R.string.pc_prev), getString(R.string.pc_play), getString(R.string.pc_next),
+                getString(R.string.pc_volume_up), getString(R.string.pc_pause), getString(R.string.pc_volume_donw)
+            )
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally){
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = pc_control_callback::musicPrev) {
+                    Text(text = list[0], color = MaterialTheme.colorScheme.onPrimary)
+                }
+                Button(onClick = pc_control_callback::musicPlay) {
+                    Text(text = list[1], color = MaterialTheme.colorScheme.onPrimary)
+                }
+                Button(onClick = pc_control_callback::musicNext) {
+                    Text(text = list[2], color = MaterialTheme.colorScheme.onPrimary)
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = pc_control_callback::volumeUp) {
+                    Text(text = list[3], color = MaterialTheme.colorScheme.onPrimary)
+                }
+                Button(onClick = pc_control_callback::musicPause) {
+                    Text(text = list[4], color = MaterialTheme.colorScheme.onPrimary)
+                }
+                Button(onClick = pc_control_callback::volumeDown) {
+                    Text(text = list[5], color = MaterialTheme.colorScheme.onPrimary)
+                }
+            }
+        }
+
+    }
+
     @Preview
     @Composable
     fun Preview(){
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("23%")
+            
             TripleButton(
                 labelList = arrayListOf("noise mode", "standard mode", "surround mode"),
                 arrayListOf(true, false, false),
                 tripleButtonCallback = noiseModeCallback
             )
+
+            Spacer(modifier = Modifier.height(50.dp))
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally){
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = pc_control_callback::musicPrev) {
+                        Text(text = "list[0]", color = MaterialTheme.colorScheme.onPrimary)
+                    }
+                    Button(onClick = pc_control_callback::musicPlay) {
+                        Text(text = "list[1]", color = MaterialTheme.colorScheme.onPrimary)
+                    }
+                    Button(onClick = pc_control_callback::musicNext) {
+                        Text(text = "list[2]", color = MaterialTheme.colorScheme.onPrimary)
+                    }
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = pc_control_callback::volumeUp) {
+                        Text(text = "list[3]", color = MaterialTheme.colorScheme.onPrimary)
+                    }
+                    Button(onClick = pc_control_callback::musicPause) {
+                        Text(text = "list[4]", color = MaterialTheme.colorScheme.onPrimary)
+                    }
+                    Button(onClick = pc_control_callback::volumeDown) {
+                        Text(text = "list[5]", color = MaterialTheme.colorScheme.onPrimary)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(50.dp))
+
             Row(verticalAlignment = Alignment.CenterVertically){
                 Switch(checked = false, onCheckedChange = {})
                 Text(text = "game mode", color = MaterialTheme.colorScheme.primary)
             }
+
             Button(onClick = ::powerOffCallback) {
                 Text(text = "text", color = MaterialTheme.colorScheme.onPrimary)
             }
+
+
         }
 
     }
@@ -261,6 +358,9 @@ class ConnectedActivity : AppCompatActivity() {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             BatteryUi(viewModel = viewModel)
             NoiseModeUi(viewModel = viewModel)
+            Spacer(modifier = Modifier.height(50.dp))
+            PcControlUi()
+            Spacer(modifier = Modifier.height(50.dp))
             GameModeUi(viewModel = viewModel)
             PowerOffUi()
         }

@@ -13,4 +13,10 @@
     <string name="game_mode">游戏模式</string>
     <string name="current_battery">当前电量</string>
     <string name="power_off">关机</string>
+    <string name="pc_next">下一首</string>
+    <string name="pc_prev">上一首</string>
+    <string name="pc_play">音乐播放</string>
+    <string name="pc_pause">音乐暂停</string>
+    <string name="pc_volume_up">音量加</string>
+    <string name="pc_volume_donw">音量减</string>
 </resources>
