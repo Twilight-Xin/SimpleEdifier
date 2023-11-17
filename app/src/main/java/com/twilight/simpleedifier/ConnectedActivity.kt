@@ -360,17 +360,17 @@ class ConnectedActivity : AppCompatActivity() {
                     checked = status.value[0],
                     onCheckedChange = selectable_noise_modes_callback::first
                 )
-                Text(text = label[0])
+                Text(text = label[0], color = MaterialTheme.colorScheme.primary)
                 Checkbox(
                     checked = status.value[1],
                     onCheckedChange = selectable_noise_modes_callback::second
                 )
-                Text(text = label[1])
+                Text(text = label[1], color = MaterialTheme.colorScheme.primary)
                 Checkbox(
                     checked = status.value[2],
                     onCheckedChange = selectable_noise_modes_callback::third
                 )
-                Text(text = label[2])
+                Text(text = label[2], color = MaterialTheme.colorScheme.primary)
             }
             Button(onClick = selectable_noise_modes_callback::set) {
                 val text = remember {
