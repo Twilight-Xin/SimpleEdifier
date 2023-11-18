@@ -96,6 +96,7 @@ class ConnectedActivity : AppCompatActivity() {
     }
 
     private fun disconnect(){
+        connectDevice.close()
         val intent = Intent(this, ScanActivity::class.java)
         intent.putExtra(ScanActivity.connect_fail, true)
         startActivity(intent)
@@ -381,6 +382,16 @@ class ConnectedActivity : AppCompatActivity() {
         }
     }
 
+    @Composable
+    fun DisconnectUi(){
+        Button(onClick = ::disconnect) {
+            val text = remember {
+                getString(R.string.disconnect)
+            }
+            Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
+        }
+    }
+
     @Preview
     @Composable
     fun Preview(){
@@ -459,6 +470,10 @@ class ConnectedActivity : AppCompatActivity() {
                 Text(text = "text", color = MaterialTheme.colorScheme.onPrimary)
             }
 
+            Button({}){
+                Text(text = "disconnect", color = MaterialTheme.colorScheme.onPrimary)
+            }
+
 
         }
 
@@ -476,6 +491,7 @@ class ConnectedActivity : AppCompatActivity() {
             Spacer(modifier = Modifier.height(50.dp))
             GameModeUi(viewModel = viewModel)
             PowerOffUi()
+            DisconnectUi()
         }
 
     }

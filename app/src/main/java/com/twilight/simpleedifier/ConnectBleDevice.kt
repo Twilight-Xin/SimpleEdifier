@@ -15,7 +15,7 @@ import android.util.Log
 import java.util.UUID
 
 
-class ConnectBleDevice(context: Context, device:BluetoothDevice, viewModel: EdifierViewModel): ConnectDevice(context) {
+class ConnectBleDevice(private val context: Context, private val device:BluetoothDevice, val viewModel: EdifierViewModel): ConnectDevice(context) {
     companion object{
         private const val TAG = "ConnectBleDevice"
 
@@ -108,7 +108,7 @@ class ConnectBleDevice(context: Context, device:BluetoothDevice, viewModel: Edif
     }
 
     @SuppressLint("MissingPermission")
-    val gatt: BluetoothGatt? = device.connectGatt(context,false, bluetoothGattCallback)
+    var gatt: BluetoothGatt? = device.connectGatt(context,false, bluetoothGattCallback)
     var serviceList: List<BluetoothGattService>? = null
     var service:BluetoothGattService? = null
     var characteristicList:List<BluetoothGattCharacteristic>? = null
@@ -132,6 +132,23 @@ class ConnectBleDevice(context: Context, device:BluetoothDevice, viewModel: Edif
             }
         }
         return send_success
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun connect() {
+        if(gatt == null) {
+            gatt = device.connectGatt(context, false, bluetoothGattCallback)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun close() {
+        notify_characteristic = null
+        serviceList = null
+        service = null
+        write_characteristic = null
+        gatt?.disconnect()
+        gatt = null
     }
 
 

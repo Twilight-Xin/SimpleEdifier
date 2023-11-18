@@ -78,11 +78,9 @@ abstract class ConnectDevice(var mContext: Context) {
         }
     }
 
-    private var connected = false
+    abstract fun connect()
 
-    fun isConnected():Boolean{
-        return connected
-    }
+    abstract fun close()
 
     abstract fun write(s:String):Boolean
 
