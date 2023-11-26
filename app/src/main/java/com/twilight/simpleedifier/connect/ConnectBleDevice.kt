@@ -16,7 +16,7 @@ import com.twilight.simpleedifier.device.EdifierDevice
 import java.util.UUID
 
 
-class ConnectBleDevice(private val context: Context, private val device:BluetoothDevice, val edifierDevice: EdifierDevice): ConnectDevice(context) {
+class ConnectBleDevice(private val context: Context, private var device:BluetoothDevice, val edifierDevice: EdifierDevice): ConnectDevice(context) {
     companion object{
         private const val TAG = "ConnectBleDevice"
 
@@ -138,6 +138,22 @@ class ConnectBleDevice(private val context: Context, private val device:Bluetoot
     @SuppressLint("MissingPermission")
     override fun connect() {
         if(gatt == null) {
+            gatt = device.connectGatt(context, false, bluetoothGattCallback)
+        }
+        else{
+            gatt?.connect()
+        }
+
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun connect(device: BluetoothDevice) {
+        if(device.address == this.device.address){
+            connect()
+        }
+        else{
+            close()
+            this.device = device
             gatt = device.connectGatt(context, false, bluetoothGattCallback)
         }
     }

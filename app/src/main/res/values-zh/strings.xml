@@ -20,4 +20,5 @@
     <string name="pc_volume_up">音量加</string>
     <string name="pc_volume_down">音量减</string>
     <string name="set">设置</string>
+    <string name="click_to_change">点击切换</string>
 </resources>

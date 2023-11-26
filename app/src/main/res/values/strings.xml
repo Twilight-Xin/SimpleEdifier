@@ -21,4 +21,6 @@
     <string name="pc_volume_up">Volume Up</string>
     <string name="pc_volume_down">Volume Down</string>
     <string name="set">Set</string>
+    <string name="edifier_service_title" translatable="false">Simple Edifier Connect</string>
+    <string name="click_to_change">click to change</string>
 </resources>

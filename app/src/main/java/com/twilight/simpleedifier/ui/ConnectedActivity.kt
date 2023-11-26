@@ -1,13 +1,17 @@
 package com.twilight.simpleedifier
 
+import android.Manifest
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.asFlow
 import com.twilight.simpleedifier.device.EdifierDevice
 import com.twilight.simpleedifier.service.ConnectService
@@ -42,6 +47,9 @@ class ConnectedActivity : AppCompatActivity() {
     private var connected = false
     private lateinit var viewModel: EdifierViewModel
     private var service: ConnectService? = null
+    private val requsetPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()){
+
+    }
 
     val serviceCallback: ServiceConnection = object: ServiceConnection{
         override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
@@ -70,6 +78,15 @@ class ConnectedActivity : AppCompatActivity() {
             val service_intent = Intent(this, ConnectService::class.java)
             service_intent.putExtra(ConnectDevice.device_mac, mac)
             service_intent.putExtra(ConnectDevice.isBLE, supportBle)
+            if(Build.VERSION.SDK_INT >= 33 && (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+                        )) {
+                requsetPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }else{
+                startForegroundService(service_intent)
+            }
             bindService(service_intent, serviceCallback, Context.BIND_AUTO_CREATE)
         }
 

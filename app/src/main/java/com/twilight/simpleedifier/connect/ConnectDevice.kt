@@ -1,5 +1,6 @@
 package com.twilight.simpleedifier
 
+import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.util.Log
 
@@ -78,6 +79,8 @@ abstract class ConnectDevice(var mContext: Context) {
     }
 
     abstract fun connect()
+
+    abstract fun connect(device: BluetoothDevice)
 
     abstract fun close()
 
