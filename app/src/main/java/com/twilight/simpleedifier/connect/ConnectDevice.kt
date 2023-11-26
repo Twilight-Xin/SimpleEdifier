@@ -47,7 +47,6 @@ abstract class ConnectDevice(var mContext: Context) {
 
         fun addCRC(bArr: ByteArray): ByteArray {
             var i: Int
-            var b: Byte
             i = 8217
             for (b2 in bArr) {
                 i += b2.toInt() and 255

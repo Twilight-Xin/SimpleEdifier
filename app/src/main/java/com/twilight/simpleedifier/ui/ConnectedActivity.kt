@@ -1,9 +1,11 @@
 package com.twilight.simpleedifier
 
-import android.bluetooth.BluetoothManager
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -28,6 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
+import com.twilight.simpleedifier.device.EdifierDevice
+import com.twilight.simpleedifier.service.ConnectService
+import com.twilight.simpleedifier.ui.EdifierViewModel
 import com.twilight.simpleedifier.ui.theme.SimpleEdifierTheme
 
 class ConnectedActivity : AppCompatActivity() {
@@ -36,26 +41,37 @@ class ConnectedActivity : AppCompatActivity() {
     }
     private var connected = false
     private lateinit var viewModel: EdifierViewModel
-    private lateinit var connectDevice: ConnectDevice
+    private var service: ConnectService? = null
+
+    val serviceCallback: ServiceConnection = object: ServiceConnection{
+        override fun onServiceConnected(p0: ComponentName?, p1: IBinder?) {
+            val binder = p1 as ConnectService.ConnectServiceBinder
+            service = binder.getService()
+            service?.let { viewModel.setEdifierDevice(it.getEdifierDevice()) }
+            waitForConnect()
+        }
+
+        override fun onServiceDisconnected(p0: ComponentName?) {
+            service = null
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // view model
-        val model:EdifierViewModel by viewModels()
+        val model: EdifierViewModel by viewModels()
         viewModel = model
 
         val mac = intent.getStringExtra(ConnectDevice.device_mac)
-        val isBle = intent.getBooleanExtra(ConnectDevice.isBLE, false)
-        if (mac !=null){
-            connect(mac, isBle)
-        }else{
-            Toast.makeText(this, "蓝牙MAC为空", Toast.LENGTH_LONG).show()
-            val back_intent = Intent(this, ScanActivity::class.java)
-            startActivity(back_intent)
-            finish()
-        }
+        val supportBle = intent.getBooleanExtra(ConnectDevice.isBLE, false)
 
-        waitForConnect()
+        // bind
+        if(mac != null) {
+            val service_intent = Intent(this, ConnectService::class.java)
+            service_intent.putExtra(ConnectDevice.device_mac, mac)
+            service_intent.putExtra(ConnectDevice.isBLE, supportBle)
+            bindService(service_intent, serviceCallback, Context.BIND_AUTO_CREATE)
+        }
 
         // UI
         setContent {
@@ -70,7 +86,7 @@ class ConnectedActivity : AppCompatActivity() {
             if(it){
                 Toast.makeText(this, getString(R.string.connect_success), Toast.LENGTH_LONG).show()
                 connected = true
-                readSettings()
+                service?.readSettings()
             }else{
                 if(connected) {
                     Toast.makeText(this, getString(R.string.disconnect), Toast.LENGTH_LONG).show()
@@ -86,66 +102,56 @@ class ConnectedActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun connect(mac:String, isBle:Boolean){
-        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        val device = bluetoothManager.adapter.getRemoteDevice(mac)
-        viewModel.setDevice(device)
-        if(isBle) {
-            connectDevice = ConnectBleDevice(this, device, viewModel)
-        }
-    }
-
     private fun disconnect(){
-        connectDevice.close()
+        service?.disconnect()
         val intent = Intent(this, ScanActivity::class.java)
         intent.putExtra(ScanActivity.connect_fail, true)
         startActivity(intent)
         finish()
     }
 
-    private fun readSettings(){
-        Thread{
-            connectDevice.write(getString(R.string.cmd_read_battery))
-            Thread.sleep(150)
-            connectDevice.write(getString(R.string.cmd_read_noise))
-            Thread.sleep(150)
-            connectDevice.write(getString(R.string.cmd_read_as_settings))
-            Thread.sleep(150)
-            connectDevice.write(getString(R.string.cmd_read_game_mode))
-            Thread.sleep(150)
-            connectDevice.write(getString(R.string.cmd_read_mac))
-            Thread.sleep(150)
-            connectDevice.write(getString(R.string.cmd_read_ldac))
-            Thread.sleep(150)
-            connectDevice.write(getString(R.string.cmd_read_eq))
-            //
-        }.start()
-    }
 
     // call back
 
     private val noiseModeCallback: TripleButtonCallback = object:TripleButtonCallback{
         override fun third() { // surround
-            val cmd = getString(R.string.cmd_noise_ambient)
-            if(connectDevice.write(cmd)){
-                viewModel.setNoiseMode(EdifierViewModel.noise_ambient)
-            }
+            service?.setNoiseMode(EdifierDevice.Companion.NoiseMode.noise_ambient)
         }
 
         override fun second() { // standard
-            val cmd = getString(R.string.cmd_noise_normal)
-            if(connectDevice.write(cmd)){
-                viewModel.setNoiseMode(EdifierViewModel.noise_normal)
-            }
+            service?.setNoiseMode(EdifierDevice.Companion.NoiseMode.noise_normal)
         }
 
         override fun first() { // noise
-            val cmd = getString(R.string.cmd_noise_reduction)
-            if(connectDevice.write(cmd)){
-                viewModel.setNoiseMode(EdifierViewModel.noise_reduction)
-            }
+            service?.setNoiseMode(EdifierDevice.Companion.NoiseMode.noise_reduction)
         }
 
+    }
+
+    private val pc_control_callback = object {
+        fun musicPrev(){
+            service?.musicPrev()
+        }
+
+        fun musicNext(){
+            service?.musicNext()
+        }
+
+        fun musicPlay(){
+            service?.musicPlay()
+        }
+
+        fun musicPause(){
+            service?.musicPause()
+        }
+
+        fun volumeUp(){
+            service?.volumeUp()
+        }
+
+        fun volumeDown(){
+            service?.volumeDown()
+        }
     }
 
     private val selectable_noise_modes_callback = object {
@@ -173,67 +179,33 @@ class ConnectedActivity : AppCompatActivity() {
 
         fun set(){
             val array = viewModel.getNotApplySelectableNoiseMode().value
-            val cmd = getString(R.string.cmd_control_settings)
-            var full_cmd = ""
+            var mode:EdifierDevice.Companion.SelectableNoiseMode? = null
             if(array != null && array.size == 3){
                 if(array[0] && array[1] && array[2]){
-                    full_cmd = cmd + "07"
+                    mode = EdifierDevice.Companion.SelectableNoiseMode.all
                 }
                 else if(array[1] && array[2]){
-                    full_cmd = cmd + "05"
+                    mode = EdifierDevice.Companion.SelectableNoiseMode.no_reduction
                 }
                 else if(array[0] && array[2]){
-                    full_cmd = cmd + "06"
+                    mode = EdifierDevice.Companion.SelectableNoiseMode.no_normal
                 }
                 else if(array[0] && array[1]){
-                    full_cmd = cmd + "03"
+                    mode = EdifierDevice.Companion.SelectableNoiseMode.no_ambient
                 }
             }
-            if(full_cmd != ""){
-                connectDevice.write(full_cmd)
+            if(mode != null){
+                service?.setSelectableNoiseMode(mode)
             }
         }
     }
 
     private fun gameModeCallback(current: Boolean) {
-        val cmd = if(current){
-            getString(R.string.cmd_game_on)
-        }else{
-            getString(R.string.cmd_game_off)
-        }
-        if(connectDevice.write(cmd)){
-            viewModel.setGameMode(current)
-        }
-    }
-
-    private val pc_control_callback = object {
-        fun musicPrev(){
-            connectDevice.write(getString(R.string.cmd_pc_prev))
-        }
-
-        fun musicNext(){
-            connectDevice.write(getString(R.string.cmd_pc_next))
-        }
-
-        fun musicPlay(){
-            connectDevice.write(getString(R.string.cmd_pc_play))
-        }
-
-        fun musicPause(){
-            connectDevice.write(getString(R.string.cmd_pc_pause))
-        }
-
-        fun volumeUp(){
-            connectDevice.write(getString(R.string.cmd_pc_volume_up))
-        }
-
-        fun volumeDown(){
-            connectDevice.write(getString(R.string.cmd_pc_volume_down))
-        }
+        service?.setGameMode(current)
     }
 
     private fun powerOffCallback(){
-        connectDevice.write(getString(R.string.cmd_power_off))
+        service?.powerOff()
     }
 
     // UI
@@ -267,12 +239,12 @@ class ConnectedActivity : AppCompatActivity() {
         val label = remember {
             arrayListOf(getString(R.string.noise_mode), getString(R.string.standard_mode), getString(R.string.surround_mode))
         }
-        val noise_mode = viewModel.getNoiseMode().asFlow().collectAsState(EdifierViewModel.noise_ambient)
+        val noise_mode = viewModel.getNoiseMode().asFlow().collectAsState(EdifierDevice.Companion.NoiseMode.noise_reduction)
         val booleanArray = when (noise_mode.value) {
-            EdifierViewModel.noise_ambient -> {
+            EdifierDevice.Companion.NoiseMode.noise_ambient -> {
                 arrayListOf(false, false, true)
             }
-            EdifierViewModel.noise_normal -> {
+            EdifierDevice.Companion.NoiseMode.noise_normal -> {
                 arrayListOf(false, true, false)
             }
             else -> {
@@ -481,18 +453,20 @@ class ConnectedActivity : AppCompatActivity() {
 
     @Composable
     fun ConnectedActivityUI(viewModel: EdifierViewModel){
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            BatteryUi(viewModel = viewModel)
-            NoiseModeUi(viewModel = viewModel)
-            Spacer(modifier = Modifier.height(50.dp))
-            PcControlUi()
-            Spacer(modifier = Modifier.height(50.dp))
-            SelectableNoiseModeControlUi(viewModel = viewModel)
-            Spacer(modifier = Modifier.height(50.dp))
-            GameModeUi(viewModel = viewModel)
-            PowerOffUi()
-            DisconnectUi()
+        val edifierDevice = viewModel.isEdifierDeviceSet().asFlow().collectAsState(initial = false)
+        if(edifierDevice.value) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                BatteryUi(viewModel = viewModel)
+                NoiseModeUi(viewModel = viewModel)
+                Spacer(modifier = Modifier.height(50.dp))
+                PcControlUi()
+                Spacer(modifier = Modifier.height(50.dp))
+                SelectableNoiseModeControlUi(viewModel = viewModel)
+                Spacer(modifier = Modifier.height(50.dp))
+                GameModeUi(viewModel = viewModel)
+                PowerOffUi()
+                DisconnectUi()
+            }
         }
-
     }
 }

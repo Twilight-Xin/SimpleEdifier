@@ -12,10 +12,11 @@ import android.bluetooth.BluetoothStatusCodes
 import android.content.Context
 import android.os.Build
 import android.util.Log
+import com.twilight.simpleedifier.device.EdifierDevice
 import java.util.UUID
 
 
-class ConnectBleDevice(private val context: Context, private val device:BluetoothDevice, val viewModel: EdifierViewModel): ConnectDevice(context) {
+class ConnectBleDevice(private val context: Context, private val device:BluetoothDevice, val edifierDevice: EdifierDevice): ConnectDevice(context) {
     companion object{
         private const val TAG = "ConnectBleDevice"
 
@@ -38,7 +39,7 @@ class ConnectBleDevice(private val context: Context, private val device:Bluetoot
                     }
 
                     BluetoothProfile.STATE_DISCONNECTED -> {
-                        viewModel.setConnected(false)
+                        edifierDevice.setConnected(false)
                         Log.d(TAG, "onConnectionStateChange: 断开")
                     }
                 }
@@ -53,7 +54,7 @@ class ConnectBleDevice(private val context: Context, private val device:Bluetoot
             Thread {
                 if (CRCCheck(value)) {
                     val data = value.sliceArray(0 until  value.size - 2)
-                    viewModel.setData(data)
+                    edifierDevice.setData(data)
                 }
                 Log.d(TAG, "onCharacteristicChanged: 接受数据")
             }.start()
@@ -65,7 +66,7 @@ class ConnectBleDevice(private val context: Context, private val device:Bluetoot
             status: Int
         ) {
             Log.d(TAG, "onDescriptorWrite: 监听成功")
-            viewModel.setConnected(true)
+            edifierDevice.setConnected(true)
         }
 
         @SuppressLint("MissingPermission")
@@ -97,7 +98,7 @@ class ConnectBleDevice(private val context: Context, private val device:Bluetoot
                 }
                 if (notify_characteristic != null && write_characteristic != null) {
                     gatt?.setCharacteristicNotification(notify_characteristic, true)
-                    val descriptors = notify_characteristic?.descriptors
+                    // val descriptors = notify_characteristic?.descriptors
                     val descriptor =
                         notify_characteristic?.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
                     descriptor?.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)

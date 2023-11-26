@@ -1,27 +1,36 @@
-package com.twilight.simpleedifier
+package com.twilight.simpleedifier.device
 
 import android.bluetooth.BluetoothDevice
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 
-class EdifierViewModel: ViewModel() {
+open class EdifierDevice {
     companion object{
-        const val noise_normal = "cmd_noise_normal"
-        const val noise_reduction = "cmd_noise_reduction"
-        const val noise_ambient = "cmd_noise_ambient"
+        enum class NoiseMode {
+            noise_normal,
+            noise_reduction,
+            noise_ambient
+        }
 
-        const val eq_normal = "cmd_eq_normal"
-        const val eq_pop = "cmd_eq_pop"
-        const val eq_classical = "cmd_eq_classical"
-        const val eq_rock = "cmd_eq_rock"
+        enum class EqMode{
+            eq_normal,
+            eq_pop,
+            eq_classical,
+            eq_rock,
+        }
 
-        const val game_on = "cmd_game_on"
-        const val game_off = "cmd_game_off"
+        enum class LdacMode{
+            ldac_off,
+            ldac_48k,
+            ldac_96k
+        }
 
-        const val ldac_off = "cmd_ldac_off"
-        const val ldac_48k = "cmd_ldac_48k"
-        const val ldac_96k = "cmd_ldac_96k"
+        enum class SelectableNoiseMode{
+            all,
+            no_normal,
+            no_reduction,
+            no_ambient
+        }
 
         const val power_off = "cmd_power_off"
         const val disconnect = "cmd_disconnect"
@@ -29,32 +38,27 @@ class EdifierViewModel: ViewModel() {
         const val factory_reset = "cmd_factory_reset"
 
     }
-    private val device:MutableLiveData<BluetoothDevice> = MutableLiveData(null)
-    private val device_name:MutableLiveData<String> = MutableLiveData(null)
+    private val device: MutableLiveData<BluetoothDevice> = MutableLiveData(null)
+    private val device_name: MutableLiveData<String> = MutableLiveData("")
 
-    private val noise_mode:MutableLiveData<String> = MutableLiveData(null)
-    private val game_mode:MutableLiveData<Boolean> = MutableLiveData(false)
-    private val ldac_mode:MutableLiveData<String> = MutableLiveData(null)
-    private val eq_mode:MutableLiveData<String> = MutableLiveData(null)
-    private val as_volume:MutableLiveData<Int> = MutableLiveData(0)
-    private val prompt_volume:MutableLiveData<Int> = MutableLiveData(-1)
+    private val noise_mode: MutableLiveData<NoiseMode> = MutableLiveData(NoiseMode.noise_reduction)
+    private val game_mode: MutableLiveData<Boolean> = MutableLiveData(false)
+    private val ldac_mode: MutableLiveData<LdacMode> = MutableLiveData(LdacMode.ldac_48k)
+    private val eq_mode: MutableLiveData<EqMode> = MutableLiveData(EqMode.eq_normal)
+    private val as_volume: MutableLiveData<Int> = MutableLiveData(0)
+    private val prompt_volume: MutableLiveData<Int> = MutableLiveData(-1)
 
-    private val selectable_noise_modes:MutableLiveData<ArrayList<Boolean>> = MutableLiveData(
-        arrayListOf(true, true, true)
-    )
-    private val not_apply_selectable_noise_modes:MutableLiveData<ArrayList<Boolean>> = MutableLiveData(
-        arrayListOf(true, true, true)
-    )
+    private val selectable_noise_modes: MutableLiveData<SelectableNoiseMode> = MutableLiveData(SelectableNoiseMode.all)
 
-    private val shutdown_time:MutableLiveData<Int> = MutableLiveData(-1)
+    private val shutdown_time: MutableLiveData<Int> = MutableLiveData(-1)
 
-    private val battery:MutableLiveData<Int> = MutableLiveData(-1)
-    private val mac:MutableLiveData<String> = MutableLiveData(null)
-    private val firmware:MutableLiveData<String> = MutableLiveData(null)
+    private val battery: MutableLiveData<Int> = MutableLiveData(-1)
+    private val mac: MutableLiveData<String> = MutableLiveData("")
+    private val firmware: MutableLiveData<String> = MutableLiveData("")
 
-    private val connected:MutableLiveData<Boolean> = MutableLiveData(false)
+    private val connected: MutableLiveData<Boolean> = MutableLiveData(false)
 
-    fun getDevice(): LiveData<BluetoothDevice>{
+    fun getDevice(): LiveData<BluetoothDevice> {
         return device
     }
 
@@ -62,17 +66,15 @@ class EdifierViewModel: ViewModel() {
         this.device.postValue(device)
     }
 
-    fun getNoiseMode():LiveData<String>{
+    fun getNoiseMode(): LiveData<NoiseMode> {
         return  noise_mode
     }
 
-    fun setNoiseMode(mode:String){
-        if(mode == noise_ambient || mode == noise_normal || mode == noise_reduction) {
-            noise_mode.postValue(mode)
-        }
+    fun setNoiseMode(mode:NoiseMode){
+        noise_mode.postValue(mode)
     }
 
-    fun  getGameMode():LiveData<Boolean>{
+    fun  getGameMode(): LiveData<Boolean> {
         return game_mode
     }
 
@@ -80,15 +82,15 @@ class EdifierViewModel: ViewModel() {
         game_mode.postValue(mode)
     }
 
-    fun getLdacMode():LiveData<String>{
+    fun getLdacMode(): LiveData<LdacMode> {
         return ldac_mode
     }
 
-    fun getEqMode():LiveData<String>{
+    fun getEqMode(): LiveData<EqMode> {
         return eq_mode
     }
 
-    fun isConnected():LiveData<Boolean>{
+    fun isConnected(): LiveData<Boolean> {
         return connected
     }
 
@@ -96,31 +98,23 @@ class EdifierViewModel: ViewModel() {
         this.connected.postValue(connected)
     }
 
-    fun getBattery():LiveData<Int>{
+    fun getBattery(): LiveData<Int> {
         return battery
     }
 
-    fun getMac():LiveData<String>{
+    fun getMac(): LiveData<String> {
         return mac
     }
 
-    fun getFirmware():LiveData<String>{
+    fun getFirmware(): LiveData<String> {
         return firmware
     }
 
-    fun getSelectableNoiseMode():LiveData<ArrayList<Boolean>>{
+    fun getSelectableNoiseMode(): LiveData<SelectableNoiseMode> {
         return selectable_noise_modes
     }
 
-    fun getNotApplySelectableNoiseMode():LiveData<ArrayList<Boolean>>{
-        return not_apply_selectable_noise_modes
-    }
-
-    fun setNotApplySelectableNoiseMode(list:ArrayList<Boolean>){
-        not_apply_selectable_noise_modes.postValue(list)
-    }
-
-    fun getShutDownTime():LiveData<Int>{
+    fun getShutDownTime(): LiveData<Int> {
         return shutdown_time
     }
 
@@ -137,16 +131,16 @@ class EdifierViewModel: ViewModel() {
                         // eq mode
                         when (ch){
                             0u -> {
-                                eq_mode.postValue(eq_normal)
+                                eq_mode.postValue(EqMode.eq_normal)
                             }
                             1u ->{
-                                eq_mode.postValue(eq_pop)
+                                eq_mode.postValue(EqMode.eq_pop)
                             }
                             2u ->{
-                                eq_mode.postValue(eq_classical)
+                                eq_mode.postValue(EqMode.eq_classical)
                             }
                             3u ->{
-                                eq_mode.postValue(eq_rock)
+                                eq_mode.postValue(EqMode.eq_rock)
                             }
                         }
                     }
@@ -162,13 +156,13 @@ class EdifierViewModel: ViewModel() {
                         // LDAC
                         when(ch){
                             0u ->{
-                                ldac_mode.postValue(ldac_off)
+                                ldac_mode.postValue(LdacMode.ldac_off)
                             }
                             1u ->{
-                                ldac_mode.postValue(ldac_48k)
+                                ldac_mode.postValue(LdacMode.ldac_48k)
                             }
                             2u ->{
-                                ldac_mode.postValue(ldac_96k)
+                                ldac_mode.postValue(LdacMode.ldac_96k)
                             }
                         }
                     }
@@ -204,13 +198,13 @@ class EdifierViewModel: ViewModel() {
                         val volume = ((byteArray[4].toUInt() and 0xFFu) - 6u).toInt()
                         when(mode){
                             0x01u ->{
-                                noise_mode.postValue(noise_normal)
+                                noise_mode.postValue(NoiseMode.noise_normal)
                             }
                             0x02u ->{
-                                noise_mode.postValue(noise_reduction)
+                                noise_mode.postValue(NoiseMode.noise_reduction)
                             }
                             0x03u ->{
-                                noise_mode.postValue(noise_ambient)
+                                noise_mode.postValue(NoiseMode.noise_ambient)
                             }
                         }
                         as_volume.postValue(volume)
@@ -223,10 +217,16 @@ class EdifierViewModel: ViewModel() {
                         // 可选降噪
                         val mode = byteArray[4].toUInt() and 0xFFu
                         val selectable_modes = arrayListOf((mode and 2u) == 2u, (mode and 1u) == 1u, (mode and 4u) == 4u)
-                        selectable_noise_modes.postValue(selectable_modes)
-                        val copy = ArrayList<Boolean>()
-                        copy.addAll(selectable_modes)
-                        not_apply_selectable_noise_modes.postValue(copy)
+                        val selectableNoiseMode = if(selectable_modes[0] && selectable_modes[1] && selectable_modes[2]){
+                            SelectableNoiseMode.all
+                        } else if(!selectable_modes[0] && selectable_modes[1] && selectable_modes[2]){
+                            SelectableNoiseMode.no_reduction
+                        } else if(selectable_modes[0] && !selectable_modes[1] && selectable_modes[2]){
+                            SelectableNoiseMode.no_normal
+                        } else{
+                            SelectableNoiseMode.no_ambient
+                        }
+                        selectable_noise_modes.postValue(selectableNoiseMode)
 
                     }
                     cmd == 179u && len == 3u -> {
