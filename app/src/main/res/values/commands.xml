@@ -33,6 +33,6 @@
     <string name="cmd_pc_pause" translatable="false">C201</string>
     <string name="cmd_pc_volume_up" translatable="false">C202</string>
     <string name="cmd_pc_volume_down" translatable="false">C203</string>
-    <string name="cmd_pc_prev" translatable="false">C204</string>
-    <string name="cmd_pc_next" translatable="false">C205</string>
+    <string name="cmd_pc_prev" translatable="false">C205</string>
+    <string name="cmd_pc_next" translatable="false">C204</string>
 </resources>
