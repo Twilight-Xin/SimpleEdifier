@@ -70,7 +70,6 @@ class ConnectService : Service() {
         val notification = NotificationCompat.Builder(this, notificationChannelId)
             .setSmallIcon(R.drawable.ic_sec)
             .setContentTitle(getString(R.string.edifier_service_title))
-            .setContentText(getString(R.string.click_to_change))
             .setOngoing(true)
 
         // reduce
