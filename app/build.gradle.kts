@@ -11,8 +11,8 @@ android {
         applicationId = "com.twilight.simpleedifier"
         minSdk = 29
         targetSdk = 33
-        versionCode = 3
-        versionName = "2.0.1"
+        versionCode = 4
+        versionName = "2.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -62,6 +62,8 @@ dependencies {
     // ViewModel utilities for Compose
     implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation ("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+
+    implementation ("androidx.lifecycle:lifecycle-service:2.6.2")
 
 
     implementation("androidx.activity:activity-compose:1.8.0")

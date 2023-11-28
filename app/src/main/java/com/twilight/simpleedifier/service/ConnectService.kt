@@ -12,13 +12,14 @@ import android.os.Build
 import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.LifecycleService
 import com.twilight.simpleedifier.ConnectBleDevice
 import com.twilight.simpleedifier.ConnectDevice
 import com.twilight.simpleedifier.ConnectedActivity
 import com.twilight.simpleedifier.R
 import com.twilight.simpleedifier.device.EdifierDevice
 
-class ConnectService : Service() {
+class ConnectService : LifecycleService() {
     companion object{
         val cmd_noise_mode = "cmd_noise_mode"
         val cmd_game_mode = "cmd_game_mode"
@@ -44,12 +45,15 @@ class ConnectService : Service() {
             changeGameMode()
         }
         else{
-            intent?.let { connect(it) }
+            intent?.let {
+                connect(it)
+            }
         }
         return START_REDELIVER_INTENT
     }
 
     override fun onBind(intent: Intent): IBinder {
+        super.onBind(intent)
         connect(intent)
         return ConnectServiceBinder(this)
     }
@@ -59,8 +63,20 @@ class ConnectService : Service() {
         disconnect()
     }
 
+    var isConnect = false
+
     override fun onCreate() {
         super.onCreate()
+        edifierDevice.isConnected().observe(this) {
+            if(it){
+                isConnect = true
+            }
+            else{
+                if(isConnect){
+                    disconnect()
+                }
+            }
+        }
     }
 
     private fun setForeground(){
@@ -117,6 +133,7 @@ class ConnectService : Service() {
         mac = intent.getStringExtra(ConnectDevice.device_mac)
         isBle = intent.getBooleanExtra(ConnectDevice.isBLE, false)
         if (mac !=null){
+            isConnect = false
             val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
             val device = bluetoothManager.adapter.getRemoteDevice(mac)
             edifierDevice.setDevice(device)
@@ -137,6 +154,7 @@ class ConnectService : Service() {
 
     fun disconnect(){
         connectDevice?.close()
+        stopForeground(notificationId)
         stopSelf()
     }
 
