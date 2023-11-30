@@ -12,6 +12,8 @@
     <string name="disconnect">disconnect</string>
     <string name="connect_success">connect success</string>
     <string name="game_mode">Game Mode</string>
+    <string name="game_mode_on">Game Mode On</string>
+    <string name="game_mode_off">Game Mode Off</string>
     <string name="current_battery">Current Battery</string>
     <string name="power_off">Power Off</string>
     <string name="pc_next">Next Music</string>

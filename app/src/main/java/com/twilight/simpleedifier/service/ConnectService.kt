@@ -1,9 +1,9 @@
 package com.twilight.simpleedifier.service
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.Service
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.Intent
@@ -67,6 +67,7 @@ class ConnectService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+
         edifierDevice.isConnected().observe(this) {
             if(it){
                 isConnect = true
@@ -77,50 +78,109 @@ class ConnectService : LifecycleService() {
                 }
             }
         }
+
+        edifierDevice.getGameMode().observe(this){
+            updateNotification()
+        }
+        edifierDevice.getNoiseMode().observe(this){
+            updateNotification()
+        }
     }
 
-    private fun setForeground(){
-        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+    var notificationManager:NotificationManager? = null
+
+    private fun getNotification():Notification{
+        notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(notificationChannelId, notificationChannelName, NotificationManager.IMPORTANCE_HIGH)
-        manager.createNotificationChannel(channel)
+        notificationManager!!.createNotificationChannel(channel)
         val notification = NotificationCompat.Builder(this, notificationChannelId)
             .setSmallIcon(R.drawable.ic_sec)
             .setContentTitle(getString(R.string.edifier_service_title))
             .setOngoing(true)
 
+        val noise_mode = edifierDevice.getNoiseMode().value ?: EdifierDevice.Companion.NoiseMode.noise_reduction
+
         // reduce
-        val reduce_intent = Intent(this, ConnectService::class.java)
-        reduce_intent.putExtra(cmd_noise_mode, EdifierDevice.Companion.NoiseMode.noise_reduction)
-        val pending_reduce_intent = PendingIntent.getService(this, 0, reduce_intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        notification.addAction(R.drawable.ic_circle, getString(R.string.noise_mode), pending_reduce_intent)
+        if (noise_mode != EdifierDevice.Companion.NoiseMode.noise_reduction) {
+            val reduce_intent = Intent(this, ConnectService::class.java)
+            reduce_intent.putExtra(
+                cmd_noise_mode,
+                EdifierDevice.Companion.NoiseMode.noise_reduction
+            )
+            val pending_reduce_intent = PendingIntent.getService(
+                this,
+                0,
+                reduce_intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            notification.addAction(
+                R.drawable.ic_circle,
+                getString(R.string.noise_mode),
+                pending_reduce_intent
+            )
+        }
 
         // normal
-        val normal_intent = Intent(this, ConnectService::class.java)
-        normal_intent.putExtra(cmd_noise_mode, EdifierDevice.Companion.NoiseMode.noise_normal)
-        val pending_normal_intent = PendingIntent.getService(this, 1, normal_intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        notification.addAction(R.drawable.ic_circle, getString(R.string.standard_mode), pending_normal_intent)
+        if(noise_mode != EdifierDevice.Companion.NoiseMode.noise_normal) {
+            val normal_intent = Intent(this, ConnectService::class.java)
+            normal_intent.putExtra(cmd_noise_mode, EdifierDevice.Companion.NoiseMode.noise_normal)
+            val pending_normal_intent = PendingIntent.getService(
+                this,
+                1,
+                normal_intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            notification.addAction(
+                R.drawable.ic_circle,
+                getString(R.string.standard_mode),
+                pending_normal_intent
+            )
+        }
 
         // ambient
-        val ambient_intent = Intent(this, ConnectService::class.java)
-        ambient_intent.putExtra(cmd_noise_mode, EdifierDevice.Companion.NoiseMode.noise_ambient)
-        val pending_ambient_intent = PendingIntent.getService(this, 2, ambient_intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        notification.addAction(R.drawable.ic_circle, getString(R.string.surround_mode), pending_ambient_intent)
+        if(noise_mode != EdifierDevice.Companion.NoiseMode.noise_ambient) {
+            val ambient_intent = Intent(this, ConnectService::class.java)
+            ambient_intent.putExtra(cmd_noise_mode, EdifierDevice.Companion.NoiseMode.noise_ambient)
+            val pending_ambient_intent = PendingIntent.getService(
+                this,
+                2,
+                ambient_intent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+            notification.addAction(
+                R.drawable.ic_circle,
+                getString(R.string.surround_mode),
+                pending_ambient_intent
+            )
+        }
 
         // game
         val game_intent = Intent(this, ConnectService::class.java)
         game_intent.putExtra(cmd_game_mode, true)
         val pending_game_intent = PendingIntent.getService(this, 3, game_intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        notification.addAction(R.drawable.ic_circle, getString(R.string.game_mode), pending_game_intent)
+        val gamemode_text = if (edifierDevice.getGameMode().value == true){
+            getString(R.string.game_mode_on)
+        }else{
+            getString(R.string.game_mode_off)
+        }
+        notification.addAction(R.drawable.ic_circle, gamemode_text, pending_game_intent)
 
         // content
         val content_intent = Intent(this, ConnectedActivity::class.java)
         content_intent.putExtra(ConnectDevice.device_mac, mac)
         content_intent.putExtra(ConnectDevice.isBLE, isBle)
         notification.setContentIntent(PendingIntent.getActivity(this, 0, content_intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
+        return notification.build()
+    }
 
-        startForeground(notificationId, notification.build())
+    private fun setForeground(){
+        startForeground(notificationId, getNotification())
+    }
 
-
+    private fun updateNotification(){
+        if(notificationManager != null) {
+            notificationManager?.notify(notificationId, getNotification())
+        }
     }
 
 
@@ -155,6 +215,7 @@ class ConnectService : LifecycleService() {
     fun disconnect(){
         connectDevice?.close()
         stopForeground(notificationId)
+        notificationManager = null
         stopSelf()
     }
 

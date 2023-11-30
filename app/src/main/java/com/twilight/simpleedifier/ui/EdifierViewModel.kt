@@ -19,6 +19,11 @@ class EdifierViewModel: ViewModel() {
         is_edifier_device_set.postValue(true)
     }
 
+    fun clearEdifierDevice(){
+        is_edifier_device_set.postValue(false)
+        edifier_device = null
+    }
+
     fun isEdifierDeviceSet(): LiveData<Boolean>{
         return is_edifier_device_set
     }

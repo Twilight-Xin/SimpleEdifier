@@ -61,6 +61,7 @@ class ConnectedActivity : AppCompatActivity() {
 
         override fun onServiceDisconnected(p0: ComponentName?) {
             service = null
+            viewModel.clearEdifierDevice()
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {

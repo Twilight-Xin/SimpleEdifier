@@ -11,6 +11,8 @@
     <string name="disconnect">连接断开</string>
     <string name="connect_success">连接成功</string>
     <string name="game_mode">游戏模式</string>
+    <string name="game_mode_on">游戏模式开</string>
+    <string name="game_mode_off">游戏模式关</string>
     <string name="current_battery">当前电量</string>
     <string name="power_off">关机</string>
     <string name="pc_next">下一首</string>

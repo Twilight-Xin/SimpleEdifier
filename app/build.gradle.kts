@@ -11,8 +11,8 @@ android {
         applicationId = "com.twilight.simpleedifier"
         minSdk = 29
         targetSdk = 33
-        versionCode = 4
-        versionName = "2.0.2"
+        versionCode = 5
+        versionName = "2.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
