@@ -1,4 +1,4 @@
-package com.twilight.simpleedifier
+package com.twilight.simpleedifier.ui
 
 import android.Manifest
 import android.content.ComponentName
@@ -35,9 +35,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.asFlow
+import com.twilight.simpleedifier.R
+import com.twilight.simpleedifier.ScanActivity
+import com.twilight.simpleedifier.connect.ConnectDevice
 import com.twilight.simpleedifier.device.EdifierDevice
 import com.twilight.simpleedifier.service.ConnectService
-import com.twilight.simpleedifier.ui.EdifierViewModel
 import com.twilight.simpleedifier.ui.theme.SimpleEdifierTheme
 
 class ConnectedActivity : AppCompatActivity() {
@@ -131,7 +133,7 @@ class ConnectedActivity : AppCompatActivity() {
 
     // call back
 
-    private val noiseModeCallback: TripleButtonCallback = object:TripleButtonCallback{
+    private val noiseModeCallback: TripleButtonCallback = object: TripleButtonCallback {
         override fun third() { // surround
             service?.setNoiseMode(EdifierDevice.Companion.NoiseMode.noise_ambient)
         }
@@ -255,7 +257,9 @@ class ConnectedActivity : AppCompatActivity() {
     @Composable
     fun NoiseModeUi(viewModel: EdifierViewModel){
         val label = remember {
-            arrayListOf(getString(R.string.noise_mode), getString(R.string.standard_mode), getString(R.string.surround_mode))
+            arrayListOf(getString(R.string.noise_mode), getString(R.string.standard_mode), getString(
+                R.string.surround_mode
+            ))
         }
         val noise_mode = viewModel.getNoiseMode().asFlow().collectAsState(EdifierDevice.Companion.NoiseMode.noise_reduction)
         val booleanArray = when (noise_mode.value) {
@@ -343,7 +347,9 @@ class ConnectedActivity : AppCompatActivity() {
     fun SelectableNoiseModeControlUi(viewModel: EdifierViewModel){
         val status = viewModel.getNotApplySelectableNoiseMode().asFlow().collectAsState(initial = arrayListOf(true, true, true))
         val label = remember {
-            arrayListOf(getString(R.string.noise_mode), getString(R.string.standard_mode), getString(R.string.surround_mode))
+            arrayListOf(getString(R.string.noise_mode), getString(R.string.standard_mode), getString(
+                R.string.surround_mode
+            ))
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {

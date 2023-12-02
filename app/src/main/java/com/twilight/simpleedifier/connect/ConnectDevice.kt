@@ -1,4 +1,4 @@
-package com.twilight.simpleedifier
+package com.twilight.simpleedifier.connect
 
 import android.bluetooth.BluetoothDevice
 import android.content.Context
@@ -20,7 +20,7 @@ abstract class ConnectDevice(var mContext: Context) {
             cmdWithHead[1] = cmd.size.toByte()
             System.arraycopy(cmd, 0, cmdWithHead, 2, cmd.size)
             val fullCmd = addCRC(cmdWithHead)
-            Log.i(TAG, "makeFullCmd:"+bytesToHex(fullCmd))
+            Log.i(TAG, "makeFullCmd:"+ bytesToHex(fullCmd))
             return fullCmd
         }
 
@@ -47,8 +47,7 @@ abstract class ConnectDevice(var mContext: Context) {
         }
 
         fun addCRC(bArr: ByteArray): ByteArray {
-            var i: Int
-            i = 8217
+            var i: Int = 8217
             for (b2 in bArr) {
                 i += b2.toInt() and 255
             }
@@ -57,7 +56,7 @@ abstract class ConnectDevice(var mContext: Context) {
             System.arraycopy(bArr, 0, bArr2, 0, bArr.size)
             bArr2[length - 2] = (i shr 8).toByte()
             bArr2[length - 1] = (i and 255).toByte()
-            CRCCheck(bArr2)
+            checkCRC(bArr2)
             Log.i(
                 "CRC",
                 "CRC_value:" + bytesToHex(bArr2) + ",length:" + i + ",data:" + bytesToHex(bArr)
@@ -65,7 +64,10 @@ abstract class ConnectDevice(var mContext: Context) {
             return bArr2
         }
 
-        fun CRCCheck(bArr: ByteArray): Boolean {
+        fun checkCRC(bArr: ByteArray): Boolean {
+            if(bArr.size < 3){
+                return false
+            }
             val i =
                 (bArr[bArr.size - 1].toInt() and 255) + (bArr[bArr.size - 2].toInt() shl 8 and 65280)
             var i2 = 0

@@ -13,9 +13,9 @@ import android.os.IBinder
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
-import com.twilight.simpleedifier.ConnectBleDevice
-import com.twilight.simpleedifier.ConnectDevice
-import com.twilight.simpleedifier.ConnectedActivity
+import com.twilight.simpleedifier.connect.ConnectBleDevice
+import com.twilight.simpleedifier.connect.ConnectDevice
+import com.twilight.simpleedifier.ui.ConnectedActivity
 import com.twilight.simpleedifier.R
 import com.twilight.simpleedifier.device.EdifierDevice
 

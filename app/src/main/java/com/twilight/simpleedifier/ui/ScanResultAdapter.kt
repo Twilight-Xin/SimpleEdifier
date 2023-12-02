@@ -1,4 +1,4 @@
-package com.twilight.simpleedifier
+package com.twilight.simpleedifier.ui
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.twilight.simpleedifier.R
 
 class ScanResultAdapter(val scanResultList: ArrayList<BluetoothDevice>, val handleClickCallback: HandleClickCallback) : RecyclerView.Adapter<ScanResultAdapter.ScanResultViewHolder>() {
     class ScanResultViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

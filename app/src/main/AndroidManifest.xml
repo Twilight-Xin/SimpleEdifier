@@ -28,7 +28,7 @@
             android:foregroundServiceType="connectedDevice"/>
 
         <activity
-            android:name=".ConnectedActivity"
+            android:name=".ui.ConnectedActivity"
             android:exported="false" />
         <activity
             android:name=".ScanActivity"

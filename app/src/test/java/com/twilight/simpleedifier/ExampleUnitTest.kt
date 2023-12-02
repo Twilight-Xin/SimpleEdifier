@@ -1,5 +1,6 @@
 package com.twilight.simpleedifier
 
+import com.twilight.simpleedifier.connect.ConnectDevice
 import org.junit.Test
 
 import org.junit.Assert.*

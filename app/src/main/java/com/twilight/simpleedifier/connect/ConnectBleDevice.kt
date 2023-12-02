@@ -1,4 +1,4 @@
-package com.twilight.simpleedifier
+package com.twilight.simpleedifier.connect
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
@@ -52,7 +52,7 @@ class ConnectBleDevice(private val context: Context, private var device:Bluetoot
             value: ByteArray
         ) {
             Thread {
-                if (CRCCheck(value)) {
+                if (checkCRC(value)) {
                     val data = value.sliceArray(0 until  value.size - 2)
                     edifierDevice.setData(data)
                 }

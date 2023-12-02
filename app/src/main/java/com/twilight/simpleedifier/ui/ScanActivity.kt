@@ -21,6 +21,9 @@ import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.twilight.simpleedifier.connect.ConnectDevice
+import com.twilight.simpleedifier.ui.ConnectedActivity
+import com.twilight.simpleedifier.ui.ScanResultAdapter
 
 class ScanActivity : AppCompatActivity() {
     companion object{
@@ -101,7 +104,7 @@ class ScanActivity : AppCompatActivity() {
         // recyclerView
         scan_list = findViewById(R.id.scan_list)
         val context = this
-        scan_list_adapter = ScanResultAdapter(scan_result, object:ScanResultAdapter.HandleClickCallback{
+        scan_list_adapter = ScanResultAdapter(scan_result, object: ScanResultAdapter.HandleClickCallback{
             override fun handleBluetoothDevice(device: BluetoothDevice) {
                 connect(device)
                 Toast.makeText(context, device.address, Toast.LENGTH_LONG).show()
