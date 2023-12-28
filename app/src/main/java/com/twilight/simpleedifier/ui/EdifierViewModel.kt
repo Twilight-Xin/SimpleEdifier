@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.twilight.simpleedifier.device.EdifierDevice
+import com.twilight.simpleedifier.device.EdifierDevice.Companion.SelectableNoiseMode.*
 
 class EdifierViewModel: ViewModel() {
     private var edifier_device:EdifierDevice? = null
@@ -13,10 +14,43 @@ class EdifierViewModel: ViewModel() {
         arrayListOf(true, true, true)
     )
     private val is_edifier_device_set = MutableLiveData(false)
+    private val not_apply_AS_volume = MutableLiveData(0)
+    private val not_apply_prompt_volume = MutableLiveData(0)
 
     fun setEdifierDevice(edifierDevice: EdifierDevice){
         edifier_device = edifierDevice
+        flushNotApply()
+
         is_edifier_device_set.postValue(true)
+    }
+
+    fun flushNotApply(){
+        if(edifier_device != null) {
+            not_apply_prompt_volume.postValue(edifier_device?.getPromptVolume()?.value ?: 0)
+            not_apply_AS_volume.postValue(edifier_device?.getASVolume()?.value ?: 0)
+            val array = when (edifier_device?.getSelectableNoiseMode()?.value) {
+                all -> {
+                    arrayListOf(true, true, true)
+                }
+
+                no_ambient -> {
+                    arrayListOf(true, true, false)
+                }
+
+                no_normal -> {
+                    arrayListOf(true, false, true)
+                }
+
+                no_reduction -> {
+                    arrayListOf(false, true, true)
+                }
+
+                null -> {
+                    arrayListOf(true, true, true)
+                }
+            }
+            not_apply_selectable_noise_modes.postValue(array)
+        }
     }
 
     fun clearEdifierDevice(){
@@ -81,8 +115,9 @@ class EdifierViewModel: ViewModel() {
     }
 
     fun getSelectableNoiseMode():LiveData<EdifierDevice.Companion.SelectableNoiseMode>{
-        return edifier_device?.getSelectableNoiseMode() ?: MutableLiveData(EdifierDevice.Companion.SelectableNoiseMode.all)
+        return edifier_device?.getSelectableNoiseMode() ?: MutableLiveData(all)
     }
+
 
     fun getNotApplySelectableNoiseMode():LiveData<ArrayList<Boolean>>{
         return not_apply_selectable_noise_modes
@@ -94,6 +129,32 @@ class EdifierViewModel: ViewModel() {
 
     fun getShutDownTime():LiveData<Int>{
         return edifier_device?.getShutDownTime() ?: MutableLiveData(0)
+    }
+
+    fun getASVolume():LiveData<Int>{
+        return edifier_device?.getASVolume() ?: MutableLiveData(0)
+    }
+
+    fun getNotApplyASVolume():LiveData<Int>{
+        return not_apply_AS_volume
+    }
+
+
+    fun setNotApplyASVolume(volume: Int){
+        not_apply_AS_volume.postValue(volume)
+    }
+
+    fun getPromptVolume():LiveData<Int>{
+        return edifier_device?.getPromptVolume() ?: MutableLiveData(0)
+    }
+
+    fun getNotApplyPromptVolume():LiveData<Int>{
+        return not_apply_prompt_volume
+    }
+
+
+    fun setNotApplyPromptVolume(volume: Int){
+        not_apply_prompt_volume.postValue(volume)
     }
 
 

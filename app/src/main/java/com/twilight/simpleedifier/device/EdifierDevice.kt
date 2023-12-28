@@ -114,8 +114,28 @@ open class EdifierDevice {
         return selectable_noise_modes
     }
 
+    fun setSelectableNoiseMode(mode:SelectableNoiseMode){
+        selectable_noise_modes.postValue(mode)
+    }
+
     fun getShutDownTime(): LiveData<Int> {
         return shutdown_time
+    }
+
+    fun getASVolume():LiveData<Int>{
+        return as_volume
+    }
+
+    fun setAsVolume(volume:Int){
+        as_volume.postValue(volume)
+    }
+
+    fun getPromptVolume():LiveData<Int>{
+        return prompt_volume
+    }
+
+    fun setPromptVolume(volume: Int){
+        prompt_volume.postValue(volume)
     }
 
 

@@ -14,6 +14,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -52,6 +53,7 @@ class ScanActivity : AppCompatActivity() {
 
     // view
     private lateinit var button:FloatingActionButton
+    private lateinit var reconnect_button:FloatingActionButton
     private lateinit var scan_list:RecyclerView
     private val scan_result = ArrayList<BluetoothDevice>()
     private lateinit var scan_list_adapter: ScanResultAdapter
@@ -101,6 +103,13 @@ class ScanActivity : AppCompatActivity() {
             }
         }
 
+        reconnect_button = findViewById(R.id.re_connect_button)
+        reconnect_button.visibility = View.INVISIBLE
+        reconnect_button.setOnClickListener{
+            connectBack()
+        }
+
+
         // recyclerView
         scan_list = findViewById(R.id.scan_list)
         val context = this
@@ -127,6 +136,9 @@ class ScanActivity : AppCompatActivity() {
         val fail = intent.getBooleanExtra(connect_fail, false)
         if(!fail){
             autoConnect()
+        }
+        else{
+            reconnect_button.visibility = View.VISIBLE
         }
     }
 
@@ -197,11 +209,19 @@ class ScanActivity : AppCompatActivity() {
         }
     }
 
+
     private fun autoConnect(){
         val sharedPreferences = getSharedPreferences(Settings.settings, MODE_PRIVATE)
-        val device_mac = sharedPreferences.getString(ConnectDevice.device_mac, null)
         val auto_connect = sharedPreferences.getBoolean(Settings.auto_connect, true)
-        if(device_mac != null && auto_connect){
+        if(auto_connect){
+            connectBack()
+        }
+    }
+
+    private fun connectBack(){
+        val sharedPreferences = getSharedPreferences(Settings.settings, MODE_PRIVATE)
+        val device_mac = sharedPreferences.getString(ConnectDevice.device_mac, null)
+        if(device_mac != null){
             connect(device_mac, false)
         }
     }

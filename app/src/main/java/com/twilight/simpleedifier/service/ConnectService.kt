@@ -10,6 +10,7 @@ import android.content.Intent
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
@@ -21,6 +22,7 @@ import com.twilight.simpleedifier.device.EdifierDevice
 
 class ConnectService : LifecycleService() {
     companion object{
+        val TAG = "ConnectService"
         val cmd_noise_mode = "cmd_noise_mode"
         val cmd_game_mode = "cmd_game_mode"
         val notificationId = 1
@@ -229,6 +231,8 @@ class ConnectService : LifecycleService() {
             Thread.sleep(150)
             connectDevice?.write(getString(R.string.cmd_read_noise))
             Thread.sleep(150)
+            connectDevice?.write(getString(R.string.cmd_read_name))
+            Thread.sleep(150)
             connectDevice?.write(getString(R.string.cmd_read_as_settings))
             Thread.sleep(150)
             connectDevice?.write(getString(R.string.cmd_read_game_mode))
@@ -238,8 +242,20 @@ class ConnectService : LifecycleService() {
             connectDevice?.write(getString(R.string.cmd_read_ldac))
             Thread.sleep(150)
             connectDevice?.write(getString(R.string.cmd_read_eq))
+            Thread.sleep(150)
+            connectDevice?.write(getString(R.string.cmd_read_prompt_volume))
+
             //
         }.start()
+    }
+
+    fun setPromptVolume(volume: Int){
+        if(volume in 0..15) {
+            val cmd = getString(R.string.cmd_set_prompt_volume)
+            val full_cmd = cmd + String.format("%02x", volume)
+            connectDevice?.write(full_cmd)
+            edifierDevice.setPromptVolume(volume)
+        }
     }
 
     fun setNoiseMode(mode: EdifierDevice.Companion.NoiseMode){
@@ -257,6 +273,15 @@ class ConnectService : LifecycleService() {
         val success = connectDevice?.write(cmd) ?: false
         if(success){
             edifierDevice.setNoiseMode(mode)
+        }
+    }
+
+    fun setAmbientVolume(volume: Int){
+        if (volume in -3 .. 3) {
+            val cmd = getString(R.string.cmd_noise_ambient)
+            val full_cmd = cmd + String.format("%02x", volume+6)
+            connectDevice?.write(full_cmd)
+            edifierDevice.setAsVolume(volume)
         }
     }
 
@@ -297,6 +322,7 @@ class ConnectService : LifecycleService() {
             }
         }
         if(full_cmd != ""){
+            edifierDevice.setSelectableNoiseMode(mode)
             connectDevice?.write(full_cmd)
         }
     }

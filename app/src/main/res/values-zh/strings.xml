@@ -13,6 +13,7 @@
     <string name="game_mode">游戏模式</string>
     <string name="game_mode_on">游戏模式开</string>
     <string name="game_mode_off">游戏模式关</string>
+    <string name="ambient_sound_volume">环境声音量</string>
     <string name="current_battery">当前电量</string>
     <string name="power_off">关机</string>
     <string name="pc_next">下一首</string>
@@ -23,4 +24,7 @@
     <string name="pc_volume_down">音量减</string>
     <string name="set">设置</string>
     <string name="click_to_change">点击切换</string>
+    <string name="prompt_volume">提示音量</string>
+    <string name="reconnect">重新连接</string>
+    <string name="flush_data">刷新数据</string>
 </resources>

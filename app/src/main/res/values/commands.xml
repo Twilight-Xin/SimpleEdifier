@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- set params -->
     <string name="cmd_noise_normal" translatable="false">C101</string>
     <string name="cmd_noise_reduction" translatable="false">C102</string>
     <string name="cmd_noise_ambient" translatable="false">C103</string>
@@ -17,7 +18,10 @@
     <string name="cmd_disconnect" translatable="false">CD</string>
     <string name="cmd_re_pair" translatable="false">CF</string>
     <string name="cmd_factory_reset" translatable="false">07</string>
+    <string name="cmd_set_prompt_volume" translatable="false">06</string>
 
+
+    <!-- read params -->
     <string name="cmd_read_noise" translatable="false">CC</string>
     <string name="cmd_read_eq" translatable="false">D5</string>
     <string name="cmd_read_game_mode" translatable="false">08</string>
@@ -29,6 +33,8 @@
     <string name="cmd_read_name" translatable="false">C9</string>
     <string name="cmd_read_as_settings" translatable="false">F00A</string>
 
+
+    <!-- PC control -->
     <string name="cmd_pc_play" translatable="false">C200</string>
     <string name="cmd_pc_pause" translatable="false">C201</string>
     <string name="cmd_pc_volume_up" translatable="false">C202</string>

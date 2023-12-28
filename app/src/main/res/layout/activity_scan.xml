@@ -61,4 +61,15 @@
         app:layout_constraintBottom_toBottomOf="parent"
         android:contentDescription="@string/scan_start_button" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/re_connect_button"
+        android:src="@drawable/reconnect_icon"
+        android:layout_marginBottom="80dp"
+        android:layout_marginEnd="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:contentDescription="@string/reconnect" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

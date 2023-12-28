@@ -14,6 +14,8 @@
     <string name="game_mode">Game Mode</string>
     <string name="game_mode_on">Game Mode On</string>
     <string name="game_mode_off">Game Mode Off</string>
+    <string name="ambient_sound_volume">Ambient Sound Volume</string>
+    <string name="reconnect">Connect Last paired</string>
     <string name="current_battery">Current Battery</string>
     <string name="power_off">Power Off</string>
     <string name="pc_next">Next Music</string>
@@ -25,4 +27,6 @@
     <string name="set">Set</string>
     <string name="edifier_service_title" translatable="false">Simple Edifier Connect</string>
     <string name="click_to_change">click to change</string>
+    <string name="prompt_volume">Prompt Volume</string>
+    <string name="flush_data">Flush Data</string>
 </resources>

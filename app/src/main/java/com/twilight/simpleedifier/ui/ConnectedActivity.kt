@@ -20,10 +20,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +45,7 @@ import com.twilight.simpleedifier.connect.ConnectDevice
 import com.twilight.simpleedifier.device.EdifierDevice
 import com.twilight.simpleedifier.service.ConnectService
 import com.twilight.simpleedifier.ui.theme.SimpleEdifierTheme
+import kotlin.math.roundToInt
 
 class ConnectedActivity : AppCompatActivity() {
     companion object{
@@ -228,6 +233,29 @@ class ConnectedActivity : AppCompatActivity() {
         service?.powerOff()
     }
 
+    private fun aSVolumeCallback(volume: Float) {
+        viewModel.setNotApplyASVolume(volume.roundToInt())
+    }
+
+    private fun setAsVolumeCallback(){
+        val volume = viewModel.getNotApplyASVolume().value ?: 0
+        service?.setAmbientVolume(volume)
+    }
+
+    private fun promptVolumeCallback(volume: Float){
+        viewModel.setNotApplyPromptVolume(volume.roundToInt())
+    }
+
+    private fun setPromptVolumeCallback(){
+        val volume = viewModel.getNotApplyPromptVolume().value ?: 0
+        service?.setPromptVolume(volume)
+    }
+
+    private fun flushDataCallback(){
+        service?.readSettings()
+        viewModel.flushNotApply()
+    }
+
     // UI
 
     interface TripleButtonCallback{
@@ -274,6 +302,48 @@ class ConnectedActivity : AppCompatActivity() {
             }
         }
         TripleButton(labelList = label, booleanArray, tripleButtonCallback = noiseModeCallback)
+        if(noise_mode.value == EdifierDevice.Companion.NoiseMode.noise_ambient){
+            AmbientVolume(viewModel = viewModel)
+        }
+    }
+
+    @Composable
+    fun AmbientVolume(viewModel: EdifierViewModel){
+        val text = remember {
+            getString(R.string.ambient_sound_volume)
+        }
+        val volume = viewModel.getNotApplyASVolume().asFlow().collectAsState(initial = 0)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Slider(
+                value = (volume).value.toFloat(),
+                onValueChange = ::aSVolumeCallback,
+                steps = 5,
+                valueRange = -3f..3f,
+                modifier = Modifier.weight(1f).padding(start = 10.dp)
+            )
+            Button(onClick = ::setAsVolumeCallback, modifier = Modifier.padding(10.dp)) {
+                Text(text)
+            }
+        }
+    }
+    @Composable
+    fun PromptVolume(viewModel: EdifierViewModel){
+        val text = remember {
+            getString(R.string.prompt_volume)
+        }
+        val volume = viewModel.getNotApplyPromptVolume().asFlow().collectAsState(initial = 0)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Slider(
+                value = (volume).value.toFloat(),
+                onValueChange = ::promptVolumeCallback,
+                steps = 14,
+                valueRange = 0f..15f,
+                modifier = Modifier.weight(1f).padding(start = 10.dp)
+            )
+            Button(onClick = ::setPromptVolumeCallback,modifier = Modifier.padding(10.dp)) {
+                Text(text)
+            }
+        }
     }
 
     @Composable
@@ -388,6 +458,16 @@ class ConnectedActivity : AppCompatActivity() {
         }
     }
 
+    @Composable
+    fun FlushNotApplyUI(viewModel: EdifierViewModel){
+        val text = remember{
+            getString(R.string.flush_data)
+        }
+        Button(::flushDataCallback){
+            Text(text)
+        }
+    }
+
     @Preview
     @Composable
     fun Preview(){
@@ -400,7 +480,20 @@ class ConnectedActivity : AppCompatActivity() {
                 tripleButtonCallback = noiseModeCallback
             )
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Row{
+                Slider(
+                    value = 2f,
+                    onValueChange = ::aSVolumeCallback,
+                    steps = 7,
+                    valueRange = -3f..3f,
+                    modifier = Modifier.width(250.dp)
+                )
+                Button(onClick = ::setAsVolumeCallback) {
+                    Text("text")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(5.dp))
 
             Column(horizontalAlignment = Alignment.CenterHorizontally){
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -427,7 +520,20 @@ class ConnectedActivity : AppCompatActivity() {
                 }
             }
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Row {
+                Slider(
+                    value = 0f,
+                    onValueChange = ::promptVolumeCallback,
+                    steps = 14,
+                    valueRange = 0f..15f,
+                    modifier = Modifier.weight(1f).padding(start = 10.dp)
+                )
+                Button(onClick = ::setPromptVolumeCallback, modifier = Modifier.padding(end = 10.dp)) {
+                    Text("text")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -448,10 +554,8 @@ class ConnectedActivity : AppCompatActivity() {
                     Text(text = "label[2]")
                 }
                 Button(onClick = selectable_noise_modes_callback::set) {
-                    val text = remember {
-                        getString(R.string.set)
-                    }
-                    Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
+
+                    Text(text = "set", color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 
@@ -462,14 +566,21 @@ class ConnectedActivity : AppCompatActivity() {
                 Text(text = "game mode", color = MaterialTheme.colorScheme.primary)
             }
 
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Button({}) {
+                    Text(text = "disconnect", color = MaterialTheme.colorScheme.onPrimary)
+                }
+                Spacer(modifier = Modifier.width(20.dp))
+                Button({}) {
+                    Text(text = "disconnect", color = MaterialTheme.colorScheme.onPrimary)
+                }
+
+            }
+
             Button(onClick = ::powerOffCallback) {
                 Text(text = "text", color = MaterialTheme.colorScheme.onPrimary)
             }
-
-            Button({}){
-                Text(text = "disconnect", color = MaterialTheme.colorScheme.onPrimary)
-            }
-
 
         }
 
@@ -482,14 +593,19 @@ class ConnectedActivity : AppCompatActivity() {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 BatteryUi(viewModel = viewModel)
                 NoiseModeUi(viewModel = viewModel)
-                Spacer(modifier = Modifier.height(50.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 PcControlUi()
-                Spacer(modifier = Modifier.height(50.dp))
+                PromptVolume(viewModel = viewModel)
+                Spacer(modifier = Modifier.height(20.dp))
                 SelectableNoiseModeControlUi(viewModel = viewModel)
-                Spacer(modifier = Modifier.height(50.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 GameModeUi(viewModel = viewModel)
+                Row(verticalAlignment = Alignment.CenterVertically){
+                    DisconnectUi()
+                    Spacer(modifier = Modifier.width(10.dp))
+                    FlushNotApplyUI(viewModel)
+                }
                 PowerOffUi()
-                DisconnectUi()
             }
         }
     }
