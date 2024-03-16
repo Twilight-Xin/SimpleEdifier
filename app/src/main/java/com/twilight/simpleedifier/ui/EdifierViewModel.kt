@@ -70,6 +70,10 @@ class EdifierViewModel: ViewModel() {
         edifier_device?.setDevice(device)
     }
 
+    fun getName():LiveData<String>{
+        return edifier_device?.getName() ?: MutableLiveData("Unknown Device")
+    }
+
     fun getNoiseMode():LiveData<EdifierDevice.Companion.NoiseMode>{
         return  edifier_device?.getNoiseMode() ?: MutableLiveData(EdifierDevice.Companion.NoiseMode.noise_reduction)
     }

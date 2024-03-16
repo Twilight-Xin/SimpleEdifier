@@ -11,8 +11,8 @@ android {
         applicationId = "com.twilight.simpleedifier"
         minSdk = 29
         targetSdk = 33
-        versionCode = 7
-        versionName = "2.1.0"
+        versionCode = 8
+        versionName = "2.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -67,6 +67,8 @@ dependencies {
 
 
     implementation("androidx.activity:activity-compose:1.8.0")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")

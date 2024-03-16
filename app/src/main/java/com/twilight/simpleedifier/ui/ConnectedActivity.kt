@@ -15,14 +15,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -31,13 +32,18 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.asFlow
 import com.twilight.simpleedifier.R
 import com.twilight.simpleedifier.ScanActivity
@@ -112,6 +118,7 @@ class ConnectedActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.connect_success), Toast.LENGTH_LONG).show()
                 connected = true
                 service?.readSettings()
+                viewModel.flushNotApply()
             }else{
                 if(connected) {
                     Toast.makeText(this, getString(R.string.disconnect), Toast.LENGTH_LONG).show()
@@ -283,14 +290,25 @@ class ConnectedActivity : AppCompatActivity() {
     }
 
     @Composable
-    fun NoiseModeUi(viewModel: EdifierViewModel){
-        val label = remember {
-            arrayListOf(getString(R.string.noise_mode), getString(R.string.standard_mode), getString(
-                R.string.surround_mode
-            ))
+    fun NameUi(name:State<String>){
+        Text(text = name.value, color = MaterialTheme.colorScheme.primary)
+    }
+
+    @Composable
+    fun NoiseModeUi(noiseMode: State<EdifierDevice.Companion.NoiseMode>){
+        val label = if(!LocalInspectionMode.current) {
+            remember {
+                arrayListOf(
+                    getString(R.string.noise_mode), getString(R.string.standard_mode), getString(
+                        R.string.surround_mode
+                    )
+                )
+            }
+        } else {
+            arrayListOf("Noise Mode", "Strand Mode", "Surround Mode")
         }
-        val noise_mode = viewModel.getNoiseMode().asFlow().collectAsState(EdifierDevice.Companion.NoiseMode.noise_reduction)
-        val booleanArray = when (noise_mode.value) {
+
+        val booleanArray = when (noiseMode.value) {
             EdifierDevice.Companion.NoiseMode.noise_ambient -> {
                 arrayListOf(false, false, true)
             }
@@ -302,43 +320,51 @@ class ConnectedActivity : AppCompatActivity() {
             }
         }
         TripleButton(labelList = label, booleanArray, tripleButtonCallback = noiseModeCallback)
-        if(noise_mode.value == EdifierDevice.Companion.NoiseMode.noise_ambient){
-            AmbientVolume(viewModel = viewModel)
-        }
     }
 
     @Composable
-    fun AmbientVolume(viewModel: EdifierViewModel){
-        val text = remember {
-            getString(R.string.ambient_sound_volume)
-        }
-        val volume = viewModel.getNotApplyASVolume().asFlow().collectAsState(initial = 0)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Slider(
-                value = (volume).value.toFloat(),
-                onValueChange = ::aSVolumeCallback,
-                steps = 5,
-                valueRange = -3f..3f,
-                modifier = Modifier.weight(1f).padding(start = 10.dp)
-            )
-            Button(onClick = ::setAsVolumeCallback, modifier = Modifier.padding(10.dp)) {
-                Text(text)
+    fun AmbientVolume(noiseMode:State<EdifierDevice.Companion.NoiseMode>, volume: State<Int>){
+        if(noiseMode.value == EdifierDevice.Companion.NoiseMode.noise_ambient || LocalInspectionMode.current) {
+            val text = if (!LocalInspectionMode.current) remember {
+                getString(R.string.ambient_sound_volume)
+            } else {
+                "Ambient Sound Volume"
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Slider(
+                    value = (volume).value.toFloat(),
+                    onValueChange = ::aSVolumeCallback,
+                    steps = 5,
+                    valueRange = -3f..3f,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 10.dp)
+                )
+                Button(onClick = ::setAsVolumeCallback, modifier = Modifier.padding(10.dp)) {
+                    Text(text)
+                }
             }
         }
     }
     @Composable
-    fun PromptVolume(viewModel: EdifierViewModel){
-        val text = remember {
-            getString(R.string.prompt_volume)
+    fun PromptVolume(volume: State<Int>){
+        val text = if(!LocalInspectionMode.current) {
+            remember {
+                getString(R.string.prompt_volume)
+            }
+        } else {
+            "Prompt Volume"
         }
-        val volume = viewModel.getNotApplyPromptVolume().asFlow().collectAsState(initial = 0)
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             Slider(
                 value = (volume).value.toFloat(),
                 onValueChange = ::promptVolumeCallback,
                 steps = 14,
                 valueRange = 0f..15f,
-                modifier = Modifier.weight(1f).padding(start = 10.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 10.dp)
             )
             Button(onClick = ::setPromptVolumeCallback,modifier = Modifier.padding(10.dp)) {
                 Text(text)
@@ -347,23 +373,28 @@ class ConnectedActivity : AppCompatActivity() {
     }
 
     @Composable
-    fun GameModeUi(viewModel: EdifierViewModel){
-        val gameMode = viewModel.getGameMode().asFlow().collectAsState(initial = false)
+    fun GameModeUi(gameMode: State<Boolean>){
         Row(verticalAlignment = Alignment.CenterVertically){
             Switch(checked = gameMode.value, onCheckedChange = ::gameModeCallback)
-            val game_mode = remember {
-                getString(R.string.game_mode)
+            val game_mode = if(!LocalInspectionMode.current) {
+                remember {
+                    getString(R.string.game_mode)
+                }
+            } else {
+                "Game Mode"
             }
             Text(text = game_mode, color = MaterialTheme.colorScheme.primary)
         }
-
     }
     
     @Composable
-    fun BatteryUi(viewModel: EdifierViewModel){
-        val percent = viewModel.getBattery().asFlow().collectAsState(initial = 0)
-        val text = remember {
-            getString(R.string.current_battery)
+    fun BatteryUi(percent:State<Int>){
+        val text = if(!LocalInspectionMode.current) {
+            remember {
+                getString(R.string.current_battery)
+            }
+        } else {
+            "Battery"
         }
         val show_text = text + String.format("%d %%", percent.value)
         Text(text = show_text, color = MaterialTheme.colorScheme.primary)
@@ -372,8 +403,12 @@ class ConnectedActivity : AppCompatActivity() {
     @Composable
     fun PowerOffUi(){
         Button(onClick = ::powerOffCallback) {
-            val text = remember {
-                getString(R.string.power_off)
+            val text = if(!LocalInspectionMode.current) {
+                remember {
+                    getString(R.string.power_off)
+                }
+            } else{
+                "Power Off"
             }
             Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
         }
@@ -381,10 +416,19 @@ class ConnectedActivity : AppCompatActivity() {
 
     @Composable
     fun PcControlUi(){
-        val list = remember {
-            arrayListOf(getString(R.string.pc_prev), getString(R.string.pc_play), getString(R.string.pc_next),
-                getString(R.string.pc_volume_up), getString(R.string.pc_pause), getString(R.string.pc_volume_down)
-            )
+        val list = if(!LocalInspectionMode.current) {
+            remember {
+                arrayListOf(
+                    getString(R.string.pc_prev),
+                    getString(R.string.pc_play),
+                    getString(R.string.pc_next),
+                    getString(R.string.pc_volume_up),
+                    getString(R.string.pc_pause),
+                    getString(R.string.pc_volume_down)
+                )
+            }
+        } else {
+            arrayListOf("Prev", "Play", "Next", "Vol Up", "Pause", "Vol down")
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally){
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -414,12 +458,18 @@ class ConnectedActivity : AppCompatActivity() {
     }
 
     @Composable
-    fun SelectableNoiseModeControlUi(viewModel: EdifierViewModel){
-        val status = viewModel.getNotApplySelectableNoiseMode().asFlow().collectAsState(initial = arrayListOf(true, true, true))
-        val label = remember {
-            arrayListOf(getString(R.string.noise_mode), getString(R.string.standard_mode), getString(
-                R.string.surround_mode
-            ))
+    fun SelectableNoiseModeControlUi(status:State<ArrayList<Boolean>>){
+
+        val label = if(!LocalInspectionMode.current) {
+            remember {
+                arrayListOf(
+                    getString(R.string.noise_mode), getString(R.string.standard_mode), getString(
+                        R.string.surround_mode
+                    )
+                )
+            }
+        } else{
+            arrayListOf("Noise Mode", "Stand Mode", "Surround Mode")
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -440,8 +490,12 @@ class ConnectedActivity : AppCompatActivity() {
                 Text(text = label[2], color = MaterialTheme.colorScheme.primary)
             }
             Button(onClick = selectable_noise_modes_callback::set) {
-                val text = remember {
-                    getString(R.string.set)
+                val text = if(!LocalInspectionMode.current) {
+                    remember {
+                        getString(R.string.set)
+                    }
+                } else {
+                    "Set"
                 }
                 Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
             }
@@ -451,17 +505,25 @@ class ConnectedActivity : AppCompatActivity() {
     @Composable
     fun DisconnectUi(){
         Button(onClick = ::disconnect) {
-            val text = remember {
-                getString(R.string.disconnect)
+            val text = if(!LocalInspectionMode.current) {
+                remember {
+                    getString(R.string.disconnect)
+                }
+            } else {
+                "Disconnect"
             }
             Text(text = text, color = MaterialTheme.colorScheme.onPrimary)
         }
     }
 
     @Composable
-    fun FlushNotApplyUI(viewModel: EdifierViewModel){
-        val text = remember{
-            getString(R.string.flush_data)
+    fun FlushNotApplyUI(){
+        val text = if(!LocalInspectionMode.current) {
+            remember {
+                getString(R.string.flush_data)
+            }
+        } else {
+            "Flush Data"
         }
         Button(::flushDataCallback){
             Text(text)
@@ -470,143 +532,136 @@ class ConnectedActivity : AppCompatActivity() {
 
     @Preview
     @Composable
-    fun Preview(){
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("23%")
-            
-            TripleButton(
-                labelList = arrayListOf("noise mode", "standard mode", "surround mode"),
-                arrayListOf(true, false, false),
-                tripleButtonCallback = noiseModeCallback
-            )
-
-            Row{
-                Slider(
-                    value = 2f,
-                    onValueChange = ::aSVolumeCallback,
-                    steps = 7,
-                    valueRange = -3f..3f,
-                    modifier = Modifier.width(250.dp)
-                )
-                Button(onClick = ::setAsVolumeCallback) {
-                    Text("text")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(5.dp))
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally){
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Button(onClick = pc_control_callback::musicPrev) {
-                        Text(text = "list[0]", color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                    Button(onClick = pc_control_callback::musicPlay) {
-                        Text(text = "list[1]", color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                    Button(onClick = pc_control_callback::musicNext) {
-                        Text(text = "list[2]", color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Button(onClick = pc_control_callback::volumeUp) {
-                        Text(text = "list[3]", color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                    Button(onClick = pc_control_callback::musicPause) {
-                        Text(text = "list[4]", color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                    Button(onClick = pc_control_callback::volumeDown) {
-                        Text(text = "list[5]", color = MaterialTheme.colorScheme.onPrimary)
-                    }
-                }
-            }
-
-            Row {
-                Slider(
-                    value = 0f,
-                    onValueChange = ::promptVolumeCallback,
-                    steps = 14,
-                    valueRange = 0f..15f,
-                    modifier = Modifier.weight(1f).padding(start = 10.dp)
-                )
-                Button(onClick = ::setPromptVolumeCallback, modifier = Modifier.padding(end = 10.dp)) {
-                    Text("text")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = true,
-                        onCheckedChange = selectable_noise_modes_callback::first
-                    )
-                    Text(text = "label[0]")
-                    Checkbox(
-                        checked = true,
-                        onCheckedChange = selectable_noise_modes_callback::second
-                    )
-                    Text(text = "label[1]")
-                    Checkbox(
-                        checked = true,
-                        onCheckedChange = selectable_noise_modes_callback::third
-                    )
-                    Text(text = "label[2]")
-                }
-                Button(onClick = selectable_noise_modes_callback::set) {
-
-                    Text(text = "set", color = MaterialTheme.colorScheme.onPrimary)
-                }
-            }
-
-            Spacer(modifier = Modifier.height(50.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically){
-                Switch(checked = false, onCheckedChange = {})
-                Text(text = "game mode", color = MaterialTheme.colorScheme.primary)
-            }
-
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Button({}) {
-                    Text(text = "disconnect", color = MaterialTheme.colorScheme.onPrimary)
-                }
-                Spacer(modifier = Modifier.width(20.dp))
-                Button({}) {
-                    Text(text = "disconnect", color = MaterialTheme.colorScheme.onPrimary)
-                }
-
-            }
-
-            Button(onClick = ::powerOffCallback) {
-                Text(text = "text", color = MaterialTheme.colorScheme.onPrimary)
-            }
-
-        }
-
+    fun PreviewActivityUI(){
+        ConnectedActivityUI(viewModel = EdifierViewModel())
     }
 
     @Composable
-    fun ConnectedActivityUI(viewModel: EdifierViewModel){
-        val edifierDevice = viewModel.isEdifierDeviceSet().asFlow().collectAsState(initial = false)
-        if(edifierDevice.value) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                BatteryUi(viewModel = viewModel)
-                NoiseModeUi(viewModel = viewModel)
-                Spacer(modifier = Modifier.height(20.dp))
-                PcControlUi()
-                PromptVolume(viewModel = viewModel)
-                Spacer(modifier = Modifier.height(20.dp))
-                SelectableNoiseModeControlUi(viewModel = viewModel)
-                Spacer(modifier = Modifier.height(20.dp))
-                GameModeUi(viewModel = viewModel)
-                Row(verticalAlignment = Alignment.CenterVertically){
-                    DisconnectUi()
-                    Spacer(modifier = Modifier.width(10.dp))
-                    FlushNotApplyUI(viewModel)
-                }
-                PowerOffUi()
+    fun ConnectedActivityUI(viewModel: EdifierViewModel) {
+        val edifierDevice = if (!LocalInspectionMode.current) {
+            viewModel.isEdifierDeviceSet().asFlow().collectAsState(initial = false)
+        } else {
+            remember {
+                mutableStateOf(true)
             }
+        }
+        if (edifierDevice.value) {
+            ConstraintLayout(modifier = Modifier.fillMaxSize(1f)) {
+                val (nameRef, batteryRef, noiseRef, ambientRef, pcRef, promptRef, selectableRef, gameRef, disconnectRef, flushRef, poweroffRef) = remember {
+                    createRefs()
+                }
+                Box(Modifier.constrainAs(nameRef){
+                    top.linkTo(parent.top)
+                    bottom.linkTo(batteryRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }){
+                    val name = viewModel.getName().asFlow().collectAsState(initial = "Unknown")
+                    NameUi(name)
+                }
+
+                Box(modifier = Modifier.constrainAs(batteryRef) {
+                    top.linkTo(nameRef.bottom)
+                    bottom.linkTo(noiseRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }) {
+                    val battery_percent =
+                        viewModel.getBattery().asFlow().collectAsState(initial = 0)
+                    BatteryUi(battery_percent)
+                }
+
+                val noise_mode = viewModel.getNoiseMode().asFlow()
+                    .collectAsState(EdifierDevice.Companion.NoiseMode.noise_reduction)
+                Box(modifier = Modifier.constrainAs(noiseRef) {
+                    top.linkTo(batteryRef.bottom)
+                    bottom.linkTo(ambientRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }) {
+                    NoiseModeUi(noise_mode)
+                }
+
+                Box(Modifier.constrainAs(ambientRef) {
+                    top.linkTo(noiseRef.bottom)
+                    bottom.linkTo(pcRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }) {
+                    val ambient_volume =
+                        viewModel.getNotApplyASVolume().asFlow().collectAsState(initial = 0)
+                    AmbientVolume(noise_mode, ambient_volume)
+                }
+
+
+                Box(Modifier.constrainAs(pcRef) {
+                    top.linkTo(ambientRef.bottom)
+                    bottom.linkTo(promptRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }) { PcControlUi() }
+
+                Box(Modifier.constrainAs(promptRef) {
+                    top.linkTo(pcRef.bottom)
+                    bottom.linkTo(selectableRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }) {
+                    val prompt_volume =
+                        viewModel.getNotApplyPromptVolume().asFlow().collectAsState(initial = 0)
+                    PromptVolume(prompt_volume)
+                }
+
+                Box(Modifier.constrainAs(selectableRef) {
+                    top.linkTo(promptRef.bottom)
+                    bottom.linkTo(gameRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }) {
+                    val noise_mode_control_status =
+                        viewModel.getNotApplySelectableNoiseMode().asFlow()
+                            .collectAsState(initial = arrayListOf(true, true, true))
+                    SelectableNoiseModeControlUi(noise_mode_control_status)
+                }
+
+                Box(Modifier.constrainAs(gameRef) {
+                    top.linkTo(selectableRef.bottom)
+                    bottom.linkTo(disconnectRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }) {
+                    val gameMode =
+                        viewModel.getGameMode().asFlow().collectAsState(initial = false)
+                    GameModeUi(gameMode)
+                }
+
+                Box(Modifier.constrainAs(disconnectRef) {
+                    top.linkTo(gameRef.bottom)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(flushRef.start)
+                }) { DisconnectUi() }
+
+                Box(Modifier.constrainAs(flushRef) {
+                    top.linkTo(gameRef.bottom)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(disconnectRef.end)
+                    end.linkTo(poweroffRef.start)
+                }) {
+                    FlushNotApplyUI()
+                }
+
+                Box(Modifier.constrainAs(poweroffRef) {
+                    top.linkTo(gameRef.bottom)
+                    bottom.linkTo(parent.bottom)
+                    start.linkTo(flushRef.end)
+                    end.linkTo(parent.end)
+                }) {
+                    PowerOffUi()
+                }
+
+            }
+
         }
     }
 }

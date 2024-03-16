@@ -1,6 +1,7 @@
 package com.twilight.simpleedifier.device
 
 import android.bluetooth.BluetoothDevice
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 
@@ -39,7 +40,7 @@ open class EdifierDevice {
 
     }
     private val device: MutableLiveData<BluetoothDevice> = MutableLiveData(null)
-    private val device_name: MutableLiveData<String> = MutableLiveData("")
+    private val device_name: MutableLiveData<String> = MutableLiveData("Unknown")
 
     private val noise_mode: MutableLiveData<NoiseMode> = MutableLiveData(NoiseMode.noise_reduction)
     private val game_mode: MutableLiveData<Boolean> = MutableLiveData(false)
@@ -64,6 +65,14 @@ open class EdifierDevice {
 
     fun setDevice(device: BluetoothDevice){
         this.device.postValue(device)
+    }
+
+    fun getName(): LiveData<String>{
+        return device_name
+    }
+
+    fun setName(name:String){
+        device_name.postValue(name)
     }
 
     fun getNoiseMode(): LiveData<NoiseMode> {
@@ -231,7 +240,7 @@ open class EdifierDevice {
                     }
                     cmd == 201u -> {
                         // name
-                        device_name.postValue(String(byteArray, Charsets.UTF_8))
+                        device_name.postValue(String(byteArray.sliceArray(3 until byteArray.size), Charsets.UTF_8))
                     }
                     cmd == 240u && len == 3u && (byteArray[3].toUInt() and 0xFFu ) == 10u -> {
                         // 可选降噪
