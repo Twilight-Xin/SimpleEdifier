@@ -99,6 +99,10 @@ open class EdifierDevice {
         return eq_mode
     }
 
+    fun setEqMode(mode: EqMode){
+        eq_mode.postValue(mode)
+    }
+
     fun isConnected(): LiveData<Boolean> {
         return connected
     }

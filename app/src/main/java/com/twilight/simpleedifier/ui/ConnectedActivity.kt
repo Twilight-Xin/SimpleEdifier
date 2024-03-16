@@ -18,12 +18,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +40,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.asFlow
 import com.twilight.simpleedifier.R
 import com.twilight.simpleedifier.ScanActivity
@@ -51,6 +47,7 @@ import com.twilight.simpleedifier.connect.ConnectDevice
 import com.twilight.simpleedifier.device.EdifierDevice
 import com.twilight.simpleedifier.service.ConnectService
 import com.twilight.simpleedifier.ui.theme.SimpleEdifierTheme
+import java.util.Objects
 import kotlin.math.roundToInt
 
 class ConnectedActivity : AppCompatActivity() {
@@ -118,7 +115,10 @@ class ConnectedActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.connect_success), Toast.LENGTH_LONG).show()
                 connected = true
                 service?.readSettings()
-                viewModel.flushNotApply()
+                Thread {
+                    Thread.sleep(2000)
+                    viewModel.flushNotApply()
+                }.start()
             }else{
                 if(connected) {
                     Toast.makeText(this, getString(R.string.disconnect), Toast.LENGTH_LONG).show()
@@ -145,7 +145,7 @@ class ConnectedActivity : AppCompatActivity() {
 
     // call back
 
-    private val noiseModeCallback: TripleButtonCallback = object: TripleButtonCallback {
+    private val noiseModeCallback: MulButtonCallback = object: MulButtonCallback {
         override fun third() { // surround
             service?.setNoiseMode(EdifierDevice.Companion.NoiseMode.noise_ambient)
         }
@@ -157,7 +157,24 @@ class ConnectedActivity : AppCompatActivity() {
         override fun first() { // noise
             service?.setNoiseMode(EdifierDevice.Companion.NoiseMode.noise_reduction)
         }
+    }
 
+    private val EqModeCallback: MulButtonCallback = object: MulButtonCallback {
+        override fun first() {
+            service?.setEqMode(EdifierDevice.Companion.EqMode.eq_normal)
+        }
+
+        override fun second() {
+            service?.setEqMode(EdifierDevice.Companion.EqMode.eq_classical)
+        }
+
+        override fun third() {
+            service?.setEqMode(EdifierDevice.Companion.EqMode.eq_pop)
+        }
+
+        override fun fourth() {
+            service?.setEqMode(EdifierDevice.Companion.EqMode.eq_rock)
+        }
     }
 
     private val pc_control_callback = object {
@@ -265,26 +282,27 @@ class ConnectedActivity : AppCompatActivity() {
 
     // UI
 
-    interface TripleButtonCallback{
-        fun first()
-        fun second()
-        fun third()
+    interface MulButtonCallback{
+        fun first(){}
+        fun second(){}
+        fun third(){}
+        fun fourth(){}
     }
 
     @Composable
-    fun TripleButton(labelList:List<String>,status:ArrayList<Boolean> , tripleButtonCallback: TripleButtonCallback){
+    fun TripleButton(labelList:List<String>, status:ArrayList<Boolean>, mulButtonCallback: MulButtonCallback){
         if (labelList.size < 3 || status.size < 3){
             return
         }
 
         Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth(1f), verticalAlignment = Alignment.CenterVertically){
-            RadioButton(status[0], onClick = tripleButtonCallback::first)
+            RadioButton(status[0], onClick = mulButtonCallback::first)
             Text(text = labelList[0], color = MaterialTheme.colorScheme.primary)
 
-            RadioButton(status[1], onClick = tripleButtonCallback::second)
+            RadioButton(status[1], onClick = mulButtonCallback::second)
             Text(text = labelList[1], color = MaterialTheme.colorScheme.primary)
 
-            RadioButton(status[2], onClick = tripleButtonCallback::third)
+            RadioButton(status[2], onClick = mulButtonCallback::third)
             Text(text = labelList[2], color = MaterialTheme.colorScheme.primary)
         }
     }
@@ -319,7 +337,52 @@ class ConnectedActivity : AppCompatActivity() {
                 arrayListOf(true, false, false)
             }
         }
-        TripleButton(labelList = label, booleanArray, tripleButtonCallback = noiseModeCallback)
+        TripleButton(labelList = label, booleanArray, mulButtonCallback = noiseModeCallback)
+    }
+
+    @Composable
+    fun EqUi(eqMode: State<EdifierDevice.Companion.EqMode>){
+        val labelList = if(!LocalInspectionMode.current) {
+            remember {
+                arrayListOf(
+                    getString(R.string.standard_eq),
+                    getString(R.string.classical_eq),
+                    getString(R.string.pop_eq),
+                    getString(R.string.rock_eq)
+                )
+            }
+        } else {
+            arrayListOf("Standard Mode", "classical", "pop", "rock")
+        }
+        val status = arrayListOf(false, false, false, false)
+        when(eqMode.value){
+            EdifierDevice.Companion.EqMode.eq_normal ->{
+                status[0] = true
+            }
+            EdifierDevice.Companion.EqMode.eq_classical ->{
+                status[1] = true
+            }
+            EdifierDevice.Companion.EqMode.eq_pop ->{
+                status[2] = true
+            }
+            EdifierDevice.Companion.EqMode.eq_rock ->{
+                status[3] = true
+            }
+        }
+        Row(horizontalArrangement = Arrangement.SpaceAround, modifier = Modifier.fillMaxWidth(1f), verticalAlignment = Alignment.CenterVertically){
+            RadioButton(status[0], onClick = EqModeCallback::first)
+            Text(text = labelList[0], color = MaterialTheme.colorScheme.primary)
+
+            RadioButton(status[1], onClick = EqModeCallback::second)
+            Text(text = labelList[1], color = MaterialTheme.colorScheme.primary)
+
+            RadioButton(status[2], onClick = EqModeCallback::third)
+            Text(text = labelList[2], color = MaterialTheme.colorScheme.primary)
+
+            RadioButton(status[3], onClick = EqModeCallback::fourth)
+            Text(text = labelList[3], color = MaterialTheme.colorScheme.primary)
+        }
+
     }
 
     @Composable
@@ -547,7 +610,7 @@ class ConnectedActivity : AppCompatActivity() {
         }
         if (edifierDevice.value) {
             ConstraintLayout(modifier = Modifier.fillMaxSize(1f)) {
-                val (nameRef, batteryRef, noiseRef, ambientRef, pcRef, promptRef, selectableRef, gameRef, disconnectRef, flushRef, poweroffRef) = remember {
+                val (nameRef, batteryRef, noiseRef, ambientRef, pcRef, eqRef, promptRef, selectableRef, gameRef, disconnectRef, flushRef, poweroffRef) = remember {
                     createRefs()
                 }
                 Box(Modifier.constrainAs(nameRef){
@@ -584,7 +647,7 @@ class ConnectedActivity : AppCompatActivity() {
 
                 Box(Modifier.constrainAs(ambientRef) {
                     top.linkTo(noiseRef.bottom)
-                    bottom.linkTo(pcRef.top)
+                    bottom.linkTo(eqRef.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 }) {
@@ -593,9 +656,19 @@ class ConnectedActivity : AppCompatActivity() {
                     AmbientVolume(noise_mode, ambient_volume)
                 }
 
+                Box(Modifier.constrainAs(eqRef){
+                    top.linkTo(ambientRef.bottom)
+                    bottom.linkTo(pcRef.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }){
+                    val eq_mode = viewModel.getEqMode().asFlow().collectAsState(initial = EdifierDevice.Companion.EqMode.eq_normal)
+                    EqUi(eqMode = eq_mode)
+                }
+
 
                 Box(Modifier.constrainAs(pcRef) {
-                    top.linkTo(ambientRef.bottom)
+                    top.linkTo(eqRef.bottom)
                     bottom.linkTo(promptRef.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)

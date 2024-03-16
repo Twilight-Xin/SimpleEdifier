@@ -27,4 +27,8 @@
     <string name="prompt_volume">提示音量</string>
     <string name="reconnect">重新连接</string>
     <string name="flush_data">刷新数据</string>
+    <string name="classical_eq">古典</string>
+    <string name="standard_eq">经典</string>
+    <string name="pop_eq">流行</string>
+    <string name="rock_eq">摇滚</string>
 </resources>

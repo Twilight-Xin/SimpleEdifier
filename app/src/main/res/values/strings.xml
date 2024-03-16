@@ -29,4 +29,8 @@
     <string name="click_to_change">click to change</string>
     <string name="prompt_volume">Prompt Volume</string>
     <string name="flush_data">Flush Data</string>
+    <string name="classical_eq">Classical Mode</string>
+    <string name="standard_eq">Stand Mode</string>
+    <string name="pop_eq">Pop Mode</string>
+    <string name="rock_eq">Rock Mode</string>
 </resources>

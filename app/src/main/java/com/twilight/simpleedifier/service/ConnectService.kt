@@ -276,6 +276,27 @@ class ConnectService : LifecycleService() {
         }
     }
 
+    fun setEqMode(mode: EdifierDevice.Companion.EqMode){
+        val cmd = when(mode){
+            EdifierDevice.Companion.EqMode.eq_normal -> {
+                getString(R.string.cmd_eq_normal)
+            }
+            EdifierDevice.Companion.EqMode.eq_classical -> {
+                getString(R.string.cmd_eq_classical)
+            }
+            EdifierDevice.Companion.EqMode.eq_pop -> {
+                getString(R.string.cmd_eq_pop)
+            }
+            EdifierDevice.Companion.EqMode.eq_rock -> {
+                getString(R.string.cmd_eq_rock)
+            }
+        }
+        val success = connectDevice?.write(cmd) ?: false
+        if(success){
+            edifierDevice.setEqMode(mode)
+        }
+    }
+
     fun setAmbientVolume(volume: Int){
         if (volume in -3 .. 3) {
             val cmd = getString(R.string.cmd_noise_ambient)
